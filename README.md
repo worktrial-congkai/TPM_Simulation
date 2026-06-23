@@ -86,12 +86,17 @@ Each run writes artifacts to `data/runs/<run-id>/`:
 | `eval.json`       | Full rubric report (JSON)                                                                                    |
 
 
-Inspect a run:
+**Example run** (`first-week-pm` / `meeting_first`, seed 42): `data/runs/f53381b3-9861-4200-9a61-06bdd790b244/`
+
+Inspect it:
 
 ```sh
-pm-sim run show --run-id <id>
-pm-sim events log --run-id <id>
+pm-sim run show --run-id f53381b3-9861-4200-9a61-06bdd790b244
+pm-sim events log --run-id f53381b3-9861-4200-9a61-06bdd790b244
+pm-sim eval first-week-pm --run-id f53381b3-9861-4200-9a61-06bdd790b244
 ```
+
+Or browse artifacts directly: `summary.txt`, `turn.log`, `timeline.txt`, `eval.txt`.
 
 ## Evaluation
 
@@ -112,7 +117,7 @@ pm-sim events log --run-id <id>
 
 **Strategy metrics:** launch time, time to blocker known, vendor escalated, critical path clear, tradeoff decision, launch slip days, turn counts, and tool usage (chat, email, meeting).
 
-Example `pm-sim eval` output (`meeting_first`):
+Example `pm-sim eval` output (`meeting_first`, run `f53381b3-9861-4200-9a61-06bdd790b244`):
 
 ```text
 Component                 Score  Weight
