@@ -86,8 +86,7 @@ Each run writes artifacts to `data/runs/<run-id>/`:
 | `eval.json`       | Full rubric report (JSON)                                                                                    |
 
 
-**Example run** (`first-week-pm` / `meeting_first`, seed 42): `data/runs/f53381b3-9861-4200-9a61-06bdd790b244/`
-
+**Example run** (`first-week-pm` / `meeting_first`, seed 42): `data/runs/f53381b3-9861-4200-9a61-06bdd790b244/` 
 Inspect it:
 
 ```sh
@@ -96,7 +95,8 @@ pm-sim events log --run-id f53381b3-9861-4200-9a61-06bdd790b244
 pm-sim eval first-week-pm --run-id f53381b3-9861-4200-9a61-06bdd790b244
 ```
 
-Or browse artifacts directly: `summary.txt`, `turn.log`, `timeline.txt`, `eval.txt`.
+Or browse artifacts directly: [summary.txt](data/runs/f53381b3-9861-4200-9a61-06bdd790b244/summary.txt), [turn.log](data/runs/f53381b3-9861-4200-9a61-06bdd790b244/turn.log), [timeline.txt](data/runs/f53381b3-9861-4200-9a61-06bdd790b244/timeline.txt), [eval.txt](data/runs/f53381b3-9861-4200-9a61-06bdd790b244/eval.txt).
+
 
 ## Evaluation
 
