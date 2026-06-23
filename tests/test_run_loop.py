@@ -44,7 +44,7 @@ def test_run_stops_at_max_turns(db: SimDatabase, tmp_path: Path) -> None:
   ).fetchone()
   assert row["status"] == "incomplete"
   assert (result.artifact_dir / "turn.log").exists()
-  assert (result.artifact_dir / "summary.txt").exists()
+  assert (result.artifact_dir / "timeline.txt").exists()
   assert (result.artifact_dir / "action_log.json").exists()
 
 

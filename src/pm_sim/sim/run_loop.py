@@ -17,8 +17,8 @@ from pm_sim.display.turn_log import (
   CollapsingTurnLogWriter,
   export_action_log_json,
   format_action_label,
+  format_run_summary,
   format_turn_block,
-  write_summary_text,
 )
 from pm_sim.eval.metrics import compute_run_metrics
 from pm_sim.eval.report import evaluate_run, write_eval_artifacts
@@ -103,7 +103,6 @@ def run_simulation(
     base=config.artifact_root,
   )
   turn_log_path = artifact_dir / "turn.log"
-  summary_path = artifact_dir / "summary.txt"
   action_log_path = artifact_dir / "action_log.json"
   timeline_path = artifact_dir / "timeline.txt"
   turn_log_writer = CollapsingTurnLogWriter(turn_log_path, start_time=start_time)
@@ -222,8 +221,7 @@ def run_simulation(
     report = evaluate_run(db, run_id, config.scenario_id)
     write_eval_artifacts(report, artifact_dir)
     timeline = write_interaction_timeline(db, run_id, timeline_path)
-    summary = write_summary_text(
-      summary_path,
+    summary = format_run_summary(
       scenario_id=config.scenario_id,
       agent_id=config.agent_id,
       status=status,
@@ -234,7 +232,6 @@ def run_simulation(
       rubric_total=report.rubric.total,
     )
     summary = summary + "\n\n" + timeline
-    summary_path.write_text(summary + "\n", encoding="utf-8")
     clear_run_context(db)
 
   return RunResult(

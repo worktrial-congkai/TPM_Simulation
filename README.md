@@ -79,24 +79,22 @@ Each run writes artifacts to `data/runs/<run-id>/`:
 | File              | Contents                                                                                                     |
 | ----------------- | ------------------------------------------------------------------------------------------------------------ |
 | `turn.log`        | Per-turn observation, action, and result blocks (consecutive identical turns collapse into one ranged entry) |
-| `summary.txt`     | Run status, launch time, blocker time, rubric score, interaction timeline                                    |
-| `timeline.txt`    | Agent ↔ coworker/world interaction timeline (also appended to `summary.txt`)                                 |
+| `timeline.txt`    | Agent ↔ coworker/world interaction timeline                                                                  |
 | `action_log.json` | Structured audit trail of agent actions                                                                      |
 | `eval.txt`        | Full rubric report (text)                                                                                    |
 | `eval.json`       | Full rubric report (JSON)                                                                                    |
 
 
-**Example run** (`first-week-pm` / `meeting_first`, seed 42): `data/runs/f53381b3-9861-4200-9a61-06bdd790b244/` 
+**Example run** (`first-week-pm` / `triage_first`, seed 42): `data/runs/7bab4df9-3c0a-44c5-a183-b910f6a89c00/` 
 Inspect it:
 
 ```sh
-pm-sim run show --run-id f53381b3-9861-4200-9a61-06bdd790b244
-pm-sim events log --run-id f53381b3-9861-4200-9a61-06bdd790b244
-pm-sim eval first-week-pm --run-id f53381b3-9861-4200-9a61-06bdd790b244
+pm-sim run show --run-id 7bab4df9-3c0a-44c5-a183-b910f6a89c00
+pm-sim events log --run-id 7bab4df9-3c0a-44c5-a183-b910f6a89c00
+pm-sim eval first-week-pm --run-id 7bab4df9-3c0a-44c5-a183-b910f6a89c00
 ```
 
-Or browse artifacts directly: [summary.txt](data/runs/f53381b3-9861-4200-9a61-06bdd790b244/summary.txt), [turn.log](data/runs/f53381b3-9861-4200-9a61-06bdd790b244/turn.log), [timeline.txt](data/runs/f53381b3-9861-4200-9a61-06bdd790b244/timeline.txt), [eval.txt](data/runs/f53381b3-9861-4200-9a61-06bdd790b244/eval.txt).
-
+Or browse artifacts directly: [turn.log](data/runs/7bab4df9-3c0a-44c5-a183-b910f6a89c00/turn.log), [timeline.txt](data/runs/7bab4df9-3c0a-44c5-a183-b910f6a89c00/timeline.txt), [eval.txt](data/runs/7bab4df9-3c0a-44c5-a183-b910f6a89c00/eval.txt).
 
 ## Evaluation
 
@@ -117,31 +115,31 @@ Or browse artifacts directly: [summary.txt](data/runs/f53381b3-9861-4200-9a61-06
 
 **Strategy metrics:** launch time, time to blocker known, vendor escalated, critical path clear, tradeoff decision, launch slip days, turn counts, and tool usage (chat, email, meeting).
 
-Example `pm-sim eval` output (`meeting_first`, run `f53381b3-9861-4200-9a61-06bdd790b244`):
+Example `pm-sim eval` output (`triage_first`, run `7bab4df9-3c0a-44c5-a183-b910f6a89c00`):
 
 ```text
 Component                 Score  Weight
-Blocker discovery          7.3/10     24%
-Stakeholder alignment      0.0/10     18%
-Decision quality           6.4/10     24%
+Blocker discovery          7.1/10     24%
+Stakeholder alignment      5.0/10     18%
+Decision quality           6.1/10     24%
 Project outcome           10.0/10     24%
 Team health               10.0/10      5%
 Documentation             10.0/10      5%
 ────────────────────────────────────────
-Total                     6.7/10
+Total                     7.5/10
 
 Strategy metrics:
-  launch_sim_datetime:      Wed 11:09 AM
-  time_to_blocker_known:    Mon 9:57 AM
-  time_to_vendor_escalated: Mon 10:09 AM
-  time_to_critical_path_clear: Wed 1:09 AM
-  time_to_tradeoff_decision: Mon 10:12 AM
+  launch_sim_datetime:      Wed 11:11 AM
+  time_to_blocker_known:    Mon 9:59 AM
+  time_to_vendor_escalated: Mon 10:11 AM
+  time_to_critical_path_clear: Wed 1:11 AM
+  time_to_tradeoff_decision: Mon 10:14 AM
   launch_slipped_days:      0
-  total_turns:              2967
-  total_tool_count:         10
-  chat_tool_count:          3
-  email_tool_count:         2
-  meeting_tool_count:       1
+  total_turns:              2259
+  total_tool_count:         32
+  chat_tool_count:          5
+  email_tool_count:         21
+  meeting_tool_count:       2
 ```
 
 `--compare-agents` output:

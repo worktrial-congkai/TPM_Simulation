@@ -574,8 +574,7 @@ def export_action_log_json(db: SimDatabase, run_id: str, path: Path) -> None:
   path.write_text(json.dumps(entries, indent=2), encoding="utf-8")
 
 
-def write_summary_text(
-  path: Path,
+def format_run_summary(
   *,
   scenario_id: str,
   agent_id: str,
@@ -597,6 +596,4 @@ def write_summary_text(
   )
   if rubric_total is not None:
     text += f"\n  Rubric: {rubric_total:.1f}/10"
-  path.parent.mkdir(parents=True, exist_ok=True)
-  path.write_text(text + "\n", encoding="utf-8")
   return text
