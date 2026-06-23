@@ -1,0 +1,71 @@
+coworkers:
+  - id: alex
+    name: Alex Chen
+    role: engineering
+    working_hours:
+      start: "09:00"
+      end: "18:00"
+    response_latency:
+      min_minutes: 45
+      max_minutes: 180
+      seed_key: alex-latency
+    goals:
+      - protect_engineering_capacity
+      - resist_scope_creep
+    constraints:
+      - no_scope_without_tradeoff
+
+  - id: sam
+    name: Sam Rivera
+    role: product
+    response_latency:
+      min_minutes: 10
+      max_minutes: 60
+      seed_key: sam-latency
+    goals:
+      - protect_launch_date
+    constraints: []
+
+  - id: morgan
+    name: Morgan Kim
+    role: design
+    response_latency:
+      min_minutes: 20
+      max_minutes: 90
+      seed_key: morgan-latency
+    goals:
+      - clarity_on_requirements
+    constraints:
+      - unavailable_friday_afternoon
+
+  - id: jordan
+    name: Jordan Lee
+    role: customer_success
+    response_latency:
+      min_minutes: 5
+      max_minutes: 30
+      seed_key: jordan-latency
+    goals:
+      - satisfy_enterprise_customer
+    constraints: []
+
+  - id: vendor_api
+    name: Vendor API Team
+    role: external
+    response_latency:
+      min_minutes: 60
+      max_minutes: 240
+      seed_key: vendor-latency
+    goals: []
+    constraints: []
+
+  - id: exec
+    name: Executive Sponsor
+    role: executive
+    response_latency:
+      min_minutes: 30
+      max_minutes: 120
+      seed_key: exec-latency
+    goals:
+      - informed_decisions
+    constraints: []

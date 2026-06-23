@@ -1,0 +1,30 @@
+templates:
+  - id: eng_blocker_disclosure_full
+    requires_role: engineering
+    trigger: message_received
+    condition: "channel == dm AND topic == blocker_status"
+    action: reply_with_full_blocker_details
+
+  - id: eng_blocker_disclosure_partial
+    requires_role: engineering
+    trigger: message_received
+    condition: "channel != dm AND topic == blocker_status"
+    action: reply_with_partial_blocker_details
+
+  - id: protect_launch_date_pushback
+    requires_goal: protect_launch_date
+    trigger: message_received
+    condition: "topic == launch_delay AND NOT tradeoff_decision"
+    action: push_back_on_delay
+
+  - id: customer_pressure_dm
+    requires_goal: satisfy_enterprise_customer
+    trigger: policy_scan
+    condition: "sim_day >= 3 AND NOT tradeoff_decision"
+    action: dm_agent
+
+  - id: design_signoff_gate
+    requires_goal: clarity_on_requirements
+    trigger: meeting_attended
+    condition: "meeting_type == requirements"
+    action: unblock_proj_22

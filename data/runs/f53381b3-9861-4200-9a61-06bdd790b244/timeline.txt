@@ -1,0 +1,57 @@
+Interaction timeline (agent ↔ coworkers)
+════════════════════════════════════════════════════════════════════════════════
+  Mon 9:00 AM  agent ──► morgan, alex      schedule: Requirements review
+               why        NOT requirements_meeting_held AND NOT requirements_meeting_scheduled → schedule_requirements_meeting
+               when       Mon 11:00 AM–Mon 12:00 PM
+               attendees  morgan, alex
+               type       requirements
+  Mon 9:05 AM  agent ──► tasks             tasks_list (4 tasks)
+               why        NOT tasks_checked → tasks_list
+               tasks      PROJ-17 (API integration), PROJ-22 (Design sign-off), PROJ-30 (QA), PROJ-99 (Update team wiki)
+  Mon 9:07 AM  agent ──► alex              chat → alex
+               why        blocker_unknown AND NOT waiting_on_reply → ask_blocker_owner_dm
+               topic      blocker_status
+               message    What's blocking the critical path task?
+  Mon 9:10 AM  alex             ──► agent  reply
+               why        unread_dm_from blocker_owner → read_dm
+               message    PROJ-17 integration is still blocked — I'll share more on DM if needed.
+  Mon 9:57 AM  alex             ──► agent  OAuth scope disclosed
+               message    The blocker is an OAuth scope mismatch on the vendor API — we need the extended read scope approved.
+  Mon 9:57 AM  alex             ──► agent  reply
+               why        unread_dm_from blocker_owner → read_dm
+               message    The blocker is an OAuth scope mismatch on the vendor API — we need the extended read scope approved.
+  Mon 10:09 AM agent ──► vendor_api        email → vendor_api
+               why        blocker_known AND NOT vendor_escalated → escalate_vendor
+               topic      vendor_escalation
+               subject    OAuth scope escalation
+               body       Please approve extended OAuth read scope for PROJ-17.
+  Mon 10:12 AM agent ──► decision-log      write: Launch tradeoff decision
+               why        blocker_known AND NOT tradeoff_decision → write_decision_doc
+               body       Options: (1) scope cut — drop analytics dashboard; (2) delay 2 days; (3) add eng capacity.
+  Mon 10:22 AM agent ──► sam               email → sam
+               why        blocker_known AND stakeholders_not_informed → send_status_update
+               topic      status_update
+               subject    Launch status update
+               body       Blocker identified; vendor escalation and meetings in progress.
+  Mon 10:53 AM sam              ──► agent  reply
+               message    Got it, thanks.
+  Mon 11:00 AM agent ──► morgan, alex      meeting started: Requirements review
+               when       Mon 11:00 AM–Mon 12:00 PM
+  Mon 12:00 PM morgan, alex     ──► agent  requirements meeting ended
+               when       Mon 11:00 AM–Mon 12:00 PM
+  Tue 10:09 AM vendor_api       ──► alex              PROJ-17 unblocked
+  Tue 11:09 PM alex             ──► agent  PROJ-17 complete
+               task       PROJ-17 (API integration)
+  Tue 11:09 PM agent ──► morgan            PROJ-22 → in_progress
+               why        critical_path_task_ready → start_next_critical_task
+               task       PROJ-22 (Design sign-off)
+  Wed 1:09 AM  morgan           ──► agent  PROJ-22 complete
+               task       PROJ-22 (Design sign-off)
+  Wed 1:09 AM  agent ──► alex              PROJ-30 → in_progress
+               why        critical_path_task_ready → start_next_critical_task
+               task       PROJ-30 (QA)
+  Wed 9:00 AM  jordan           ──► agent  proactive DM (policy scan)
+  Wed 11:09 AM alex             ──► agent  PROJ-30 complete
+               task       PROJ-30 (QA)
+  Wed 11:09 AM alex             ──► launch            launch complete
+════════════════════════════════════════════════════════════════════════════════

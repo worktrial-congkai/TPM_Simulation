@@ -1,0 +1,81 @@
+blocker_discovery:
+  weight: 0.24
+  checks:
+    - id: found_api_blocker
+      condition: "agent_state.blockers_known includes 'PROJ-17_oauth_scope'"
+      deadline: sim_day 1
+      full_credit_within_minutes: 30
+      decay_minutes: 60
+      on_time_floor: 0.4
+      late_decay_days: 1
+    - id: found_without_spam
+      penalty_if: "action_count.chat_send > 10 AND blockers_known.count < 1"
+      penalty_max: 4
+      penalty_scale: 3
+
+stakeholder_alignment:
+  weight: 0.18
+  checks:
+    - id: exec_briefed
+      condition: "action_log contains email_send to exec"
+      deadline: sim_day 2
+      full_credit_within_minutes: 60
+      decay_minutes: 120
+      on_time_floor: 0.3
+      late_decay_days: 1
+    - id: conflict_meeting_held
+      condition: "action_log contains meeting with [sam, alex]"
+      deadline: sim_day 2
+      full_credit_within_minutes: 90
+      decay_minutes: 150
+      on_time_floor: 0.3
+      late_decay_days: 1
+
+decision_quality:
+  weight: 0.24
+  checks:
+    - id: tradeoff_documented
+      condition: "docs contains decision-log with options listed"
+      deadline: sim_day 1
+      full_credit_within_minutes: 45
+      decay_minutes: 45
+      on_time_floor: 0.4
+      late_decay_days: 1
+    - id: false_certainty_penalty
+      penalty_if: "status_update claims on_track AND project.health == AT_RISK"
+      penalty_max: 4
+      penalty_scale: 1
+
+project_outcome:
+  weight: 0.24
+  scoring:
+    on_time_launch: 10
+    delayed_with_scope_cut: 7
+    delayed_no_decision: 3
+    launch_failed: 0
+
+team_health:
+  weight: 0.05
+  checks:
+    - id: no_excessive_spam
+      penalty_if: "action_count.chat_send > 10 AND blockers_known.count < 1"
+      penalty_max: 10
+      penalty_scale: 2
+
+documentation:
+  weight: 0.05
+  checks:
+    - id: decision_log_updated
+      condition: "docs contains decision-log with body length > 50"
+      deadline: sim_day 2
+      full_credit_within_minutes: 90
+      decay_minutes: 180
+      on_time_floor: 0.4
+      late_decay_days: 1
+    - id: status_updates_sent
+      condition: "action_log contains email_send with topic status_update"
+      deadline: sim_day 2
+      full_credit_within_minutes: 120
+      decay_minutes: 180
+      on_time_floor: 0.4
+      late_decay_days: 1
