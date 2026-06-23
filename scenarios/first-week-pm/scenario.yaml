@@ -1,0 +1,281 @@
+id: first-week-pm
+
+company:
+  name: Acme SaaS
+  product: Launch Platform
+  launch_target: "2026-06-24T18:00:00"
+  teams:
+    - engineering
+    - product
+    - design
+    - customer_success
+
+sim:
+  start_time: "2026-06-22T09:00:00"
+  end_time: "2026-06-26T18:00:00"
+  max_turns: 15000
+  seed: 42
+  wait_minutes: 1
+  action_durations:
+    tasks_list: 2
+    ask_blocker_owner_dm: 3
+    read_email: 37
+    read_dm: 12
+    default: 1
+
+world:
+  vendor_id: vendor_api
+  exec_id: exec
+
+seed:
+  milestones:
+    - id: launch
+      title: Feature launch
+      due_at: "2026-06-24T18:00:00"
+      depends_on_tasks:
+        - PROJ-30
+
+  tasks:
+    - id: PROJ-17
+      title: API integration
+      status: blocked
+      owner_id: alex
+      blocker_reason: integration issue
+      critical_path: true
+      depends_on: []
+      duration_minutes: 780
+
+    - id: PROJ-22
+      title: Design sign-off
+      status: blocked
+      owner_id: morgan
+      blocker_reason: requirements meeting not held
+      critical_path: true
+      depends_on:
+        - PROJ-17
+      duration_minutes: 120
+
+    - id: PROJ-30
+      title: QA
+      status: todo
+      owner_id: alex
+      critical_path: true
+      depends_on:
+        - PROJ-17
+        - PROJ-22
+      duration_minutes: 600
+
+    - id: PROJ-99
+      title: Update team wiki
+      status: in_progress
+      owner_id: sam
+      critical_path: false
+      depends_on: []
+      duration_minutes: 60
+
+  chat_messages:
+    - id: msg-001
+      channel: eng-launch
+      sender_id: sam
+      body: Hearing rumors about a launch delay. Anyone know what's up?
+      sent_at: "2026-06-22T08:55:00"
+
+    - id: msg-002
+      channel: dm:alex
+      sender_id: alex
+      body: PROJ-17 integration is still blocked — I'll share more on DM if needed.
+      sent_at: "2026-06-22T08:50:00"
+
+    - id: msg-003
+      channel: dm:sam
+      sender_id: sam
+      body: Can you join a requirements sync this week? Design is waiting on clarity.
+      sent_at: "2026-06-22T08:40:00"
+
+    - id: msg-004
+      channel: eng-launch
+      sender_id: alex
+      body: Anyone seen the latest API error rates? Might be unrelated to PROJ-17.
+      sent_at: "2026-06-22T08:52:00"
+
+    - id: msg-005
+      channel: dm:sam
+      sender_id: sam
+      body: Reminder — product review deck is in the shared drive when you have time.
+      sent_at: "2026-06-22T08:38:00"
+
+  emails:
+    - id: email-001
+      sender_id: jordan
+      recipient_id: agent
+      subject: Scope question on launch feature
+      body: Can we add the analytics dashboard to this launch? It should be quick.
+      sent_at: "2026-06-22T08:30:00"
+
+    - id: email-002
+      sender_id: sam
+      recipient_id: agent
+      subject: Launch date pressure
+      body: Leadership is asking if we can still hit Friday. What's the real status?
+      sent_at: "2026-06-22T08:45:00"
+
+    - id: email-003
+      sender_id: morgan
+      recipient_id: agent
+      subject: Design review notes
+      body: Posted updated mockups in Figma — no action needed before requirements sync.
+      sent_at: "2026-06-22T08:35:00"
+
+    - id: email-004
+      sender_id: alex
+      recipient_id: agent
+      subject: CI pipeline green
+      body: Nightly build passed. Unrelated to the launch blocker but FYI.
+      sent_at: "2026-06-22T08:38:00"
+
+    - id: email-005
+      sender_id: jordan
+      recipient_id: agent
+      subject: Customer call recap
+      body: Enterprise prospect asked about SSO timeline — not blocking this launch.
+      sent_at: "2026-06-22T08:42:00"
+
+    - id: email-006
+      sender_id: sam
+      recipient_id: agent
+      subject: All-hands deck
+      body: Can you skim slide 12 for launch messaging when you have a minute?
+      sent_at: "2026-06-22T08:48:00"
+
+    - id: email-007
+      sender_id: morgan
+      recipient_id: agent
+      subject: Figma comment thread
+      body: Left a note on the nav bar — cosmetic only, no launch impact.
+      sent_at: "2026-06-22T08:33:00"
+
+    - id: email-008
+      sender_id: alex
+      recipient_id: agent
+      subject: Dependabot alerts
+      body: Two low-severity npm advisories; eng backlog item, not launch-blocking.
+      sent_at: "2026-06-22T08:36:00"
+
+    - id: email-009
+      sender_id: jordan
+      recipient_id: agent
+      subject: Support macro update
+      body: Updated canned replies for billing questions — FYI for CS team.
+      sent_at: "2026-06-22T08:41:00"
+
+    - id: email-010
+      sender_id: sam
+      recipient_id: agent
+      subject: Sprint retro notes
+      body: Posted last sprint retro — one action item mentions launch comms timing.
+      sent_at: "2026-06-22T08:43:00"
+
+    - id: email-011
+      sender_id: morgan
+      recipient_id: agent
+      subject: Color palette tweak
+      body: Swapped primary blue shade in mocks; trivial change before sign-off.
+      sent_at: "2026-06-22T08:37:00"
+
+    - id: email-012
+      sender_id: alex
+      recipient_id: agent
+      subject: Staging deploy log
+      body: Staging redeploy finished overnight — unrelated to OAuth blocker.
+      sent_at: "2026-06-22T08:39:00"
+
+    - id: email-013
+      sender_id: jordan
+      recipient_id: agent
+      subject: NPS survey results
+      body: Q2 NPS ticked up — nice win, unrelated to launch scope.
+      sent_at: "2026-06-22T08:34:00"
+
+    - id: email-014
+      sender_id: sam
+      recipient_id: agent
+      subject: OKR check-in reminder
+      body: Quarterly OKR doc due next week; no rush on launch day.
+      sent_at: "2026-06-22T08:32:00"
+
+    - id: email-015
+      sender_id: morgan
+      recipient_id: agent
+      subject: Icon asset export
+      body: Exported SVG icons to the design folder — housekeeping only.
+      sent_at: "2026-06-22T08:31:00"
+
+    - id: email-016
+      sender_id: alex
+      recipient_id: agent
+      subject: Unit test flake
+      body: Intermittent test failure in payments module — tracked separately from launch.
+      sent_at: "2026-06-22T08:29:00"
+
+    - id: email-017
+      sender_id: jordan
+      recipient_id: agent
+      subject: Training webinar invite
+      body: CS team webinar next month — optional attendance for PMs.
+      sent_at: "2026-06-22T08:28:00"
+
+    - id: email-018
+      sender_id: sam
+      recipient_id: agent
+      subject: Vendor contract renewal
+      body: Legal reviewing API vendor MSA — no impact on this week's launch scope.
+      sent_at: "2026-06-22T08:27:00"
+
+    - id: email-019
+      sender_id: morgan
+      recipient_id: agent
+      subject: Accessibility audit
+      body: Scheduled a11y pass for next sprint; not gating this release.
+      sent_at: "2026-06-22T08:26:00"
+
+  calendar_events:
+    - id: cal-standup
+      title: Daily standup
+      start_at: "2026-06-22T09:30:00"
+      end_at: "2026-06-22T09:45:00"
+      organizer_id: sam
+      attendee_ids:
+        - agent
+        - alex
+        - morgan
+      event_type: standup
+
+  docs:
+    - id: doc-decision-log
+      title: Launch tradeoff decision log
+      body: ""
+      author_id: agent
+      created_at: "2026-06-22T09:00:00"
+      doc_type: decision-log
+
+  initial_events:
+    - event_type: npc.policy_scan
+      start_ts: "2026-06-24T09:00:00"
+      source: scenario:policy_scan:jordan_wed
+      payload:
+        coworker_id: jordan
+
+    - event_type: npc.policy_scan
+      start_ts: "2026-06-25T09:00:00"
+      source: scenario:policy_scan:jordan_thu
+      payload:
+        coworker_id: jordan
+
+  drift_events:
+    - event_type: milestone.drift
+      start_ts: "2026-06-23T18:00:00"
+      source: scenario:drift
+      payload:
+        task_id: PROJ-17
+        milestone_id: launch
+        slip_days: 1

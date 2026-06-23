@@ -1,0 +1,7 @@
+id: triage_first
+policies:
+  - { condition: "NOT tasks_checked", action: tasks_list }
+  - { condition: "blocker_unknown AND NOT waiting_on_reply", action: ask_blocker_owner_dm }
+  - { condition: "unread_dm_from blocker_owner", action: read_dm }
+  - { condition: "waiting_on_reply", action: wait }
+  - { condition: "no_urgent_items", action: wait }

@@ -1,0 +1,3 @@
+id: wait_only
+policies:
+  - { condition: "blocker_unknown", action: wait }

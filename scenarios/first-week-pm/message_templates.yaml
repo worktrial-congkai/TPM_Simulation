@@ -1,0 +1,13 @@
+messages:
+  ack: "Got it, thanks."
+  reply_with_full_blocker_details: >-
+    The blocker is an OAuth scope mismatch on the vendor API —
+    we need the extended read scope approved.
+  reply_with_partial_blocker_details: >-
+    Integration issue on the vendor side — ping me on DM for details.
+  push_back_on_delay: >-
+    We committed to Friday. Any delay needs a documented tradeoff before we change the date.
+  push_back_soft: >-
+    I hear you on the risk. Let's align on mitigations before we move the launch date.
+  dm_agent: >-
+    Enterprise customer is asking for a scope add. Can we discuss tradeoffs today?

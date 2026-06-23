@@ -1,0 +1,131 @@
+[Turn 1, Mon 9:00 AM, Day 1]
+  OBSERVE:  chat unread: 3 | email unread: 19 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: undiscovered | health: BLOCKED
+  ACTION:   calendar schedule → "Requirements review" (schedule_requirements_meeting)
+  RESULT:   SIM: +5min
+          meeting scheduled: Requirements review
+
+[Turn 2, Mon 9:05 AM, Day 1]
+  OBSERVE:  chat unread: 3 | email unread: 19 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: undiscovered | health: BLOCKED
+  ACTION:   tasks list → PROJ-17 (API integration), PROJ-22 (Design sign-off), PROJ-30 (QA), PROJ-99 (Update team wiki) (tasks_list)
+  RESULT:   SIM: +2min
+          PROJ-17 blocked (integration issue), PROJ-22 blocked (requirements meeting not held)
+
+[Turn 3, Mon 9:07 AM, Day 1]
+  OBSERVE:  chat unread: 3 | email unread: 19 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: undiscovered | awaiting: alex ~Mon 9:57 AM | health: BLOCKED
+  ACTION:   chat send → alex: "What's blocking the critical path task?" (ask_blocker_owner_dm)
+  RESULT:   SIM: +3min
+          sent: "What's blocking the critical path task?" → reply ~Mon 9:57 AM (alex)
+
+[Turn 4, Mon 9:10 AM, Day 1]
+  OBSERVE:  chat unread: 3 | email unread: 19 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: undiscovered | awaiting: alex ~Mon 9:57 AM | health: BLOCKED
+  ACTION:   chat read → alex (read_dm)
+  RESULT:   SIM: +12min
+          read from alex: "PROJ-17 integration is still blocked — I'll share more on DM if needed."
+
+[Turn 39, Mon 9:56 AM, Day 1]
+  OBSERVE:  chat unread: 2 | email unread: 19 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: undiscovered | awaiting: reply | health: BLOCKED
+  ACTION:   wait
+  RESULT:   SIM: +1min
+          events: alex reply: "The blocker is an OAuth scope mismatch on the vendor API — we need the extended…"
+          health: BLOCKED
+
+[Turn 40, Mon 9:57 AM, Day 1]
+  OBSERVE:  chat unread: 3 | email unread: 19 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: discovered (PROJ-17_oauth_scope) | health: BLOCKED
+  ACTION:   chat read → alex (read_dm)
+  RESULT:   SIM: +12min
+          OAuth scope disclosed → blocker_known
+          events: PROJ-99 complete, milestone check
+
+[Turn 41, Mon 10:09 AM, Day 1]
+  OBSERVE:  chat unread: 2 | email unread: 19 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: discovered (PROJ-17_oauth_scope) | health: BLOCKED
+  ACTION:   email send → vendor_api: "OAuth scope escalation": "Please approve extended OAuth read scope for PROJ-17." (escalate_vendor)
+  RESULT:   SIM: +3min
+          24h vendor timer scheduled (~Tue 10:09 AM)
+
+[Turn 42, Mon 10:12 AM, Day 1]
+  OBSERVE:  chat unread: 2 | email unread: 19 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: discovered (PROJ-17_oauth_scope) | health: BLOCKED
+  ACTION:   docs write → "Launch tradeoff decision": "Options: (1) scope cut — drop analytics dashboard; (2) delay 2 days; (3) add en…" (write_decision_doc)
+  RESULT:   SIM: +10min
+          doc written: Launch tradeoff decision
+
+[Turn 43, Mon 10:22 AM, Day 1]
+  OBSERVE:  chat unread: 2 | email unread: 19 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: discovered (PROJ-17_oauth_scope) | awaiting: sam ~Mon 10:53 AM | health: BLOCKED
+  ACTION:   email send → sam: "Launch status update": "Blocker identified; vendor escalation and meetings in progress." (send_status_update)
+  RESULT:   SIM: +3min
+          Reply scheduled ~Mon 10:53 AM (sam)
+
+[Turn 71, Mon 10:52 AM, Day 1]
+  OBSERVE:  chat unread: 2 | email unread: 19 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: discovered (PROJ-17_oauth_scope) | awaiting: reply | health: BLOCKED
+  ACTION:   wait
+  RESULT:   SIM: +1min
+          events: sam reply: "Got it, thanks."
+          health: BLOCKED
+
+[Turn 78, Mon 10:59 AM, Day 1]
+  OBSERVE:  chat unread: 2 | email unread: 19 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: discovered (PROJ-17_oauth_scope) | health: BLOCKED
+  ACTION:   wait
+  RESULT:   SIM: +1min
+          events: meeting started
+          health: BLOCKED
+
+[Turn 138, Mon 11:59 AM, Day 1]
+  OBSERVE:  chat unread: 2 | email unread: 19 | blockers: PROJ-17 (API integration) | blocker cause: discovered (PROJ-17_oauth_scope) | health: BLOCKED
+  ACTION:   wait
+  RESULT:   SIM: +1min
+          events: meeting.end
+          health: BLOCKED
+
+[Turn 1467, Tue 10:08 AM, Day 2]
+  OBSERVE:  chat unread: 2 | email unread: 19 | blockers: none | health: AT_RISK
+  ACTION:   wait
+  RESULT:   SIM: +1min
+          events: vendor turnaround complete
+          health: AT_RISK
+
+[Turn 1938, Tue 5:59 PM, Day 2]
+  OBSERVE:  chat unread: 2 | email unread: 19 | blockers: none | health: AT_RISK
+  ACTION:   wait
+  RESULT:   SIM: +1min
+          events: milestone.drift
+          health: AT_RISK
+
+[Turn 2247, Tue 11:08 PM, Day 2]
+  OBSERVE:  chat unread: 2 | email unread: 19 | blockers: none | health: AT_RISK
+  ACTION:   wait
+  RESULT:   SIM: +1min
+          events: PROJ-17 complete, milestone check
+          health: AT_RISK
+
+[Turn 2248, Tue 11:09 PM, Day 2]
+  OBSERVE:  chat unread: 2 | email unread: 19 | blockers: none | health: AT_RISK
+  ACTION:   task start → PROJ-22 (Design sign-off) (start_next_critical_task)
+  RESULT:   SIM: +1min
+          task started: PROJ-22 (Design sign-off)
+
+[Turn 2367, Wed 1:08 AM, Day 3]
+  OBSERVE:  chat unread: 2 | email unread: 19 | blockers: none | health: AT_RISK
+  ACTION:   wait
+  RESULT:   SIM: +1min
+          events: PROJ-22 complete, milestone check
+          health: AT_RISK
+
+[Turn 2368, Wed 1:09 AM, Day 3]
+  OBSERVE:  chat unread: 2 | email unread: 19 | blockers: none | health: AT_RISK
+  ACTION:   task start → PROJ-30 (QA) (start_next_critical_task)
+  RESULT:   SIM: +1min
+          task started: PROJ-30 (QA)
+
+[Turn 2838, Wed 8:59 AM, Day 3]
+  OBSERVE:  chat unread: 2 | email unread: 19 | blockers: none | health: AT_RISK
+  ACTION:   wait
+  RESULT:   SIM: +1min
+          events: npc.policy_scan
+          health: AT_RISK
+
+[Turn 2967, Wed 11:08 AM, Day 3]
+  OBSERVE:  chat unread: 2 | email unread: 19 | blockers: none | health: ON_TRACK
+  ACTION:   wait
+  RESULT:   SIM: +1min
+          events: PROJ-30 complete, launch complete
+          health: ON_TRACK
+

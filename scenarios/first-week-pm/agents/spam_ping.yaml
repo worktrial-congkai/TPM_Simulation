@@ -1,0 +1,7 @@
+id: spam_ping
+policies:
+  - { condition: "can_spam_ping", action: spam_ping_dm }
+  - { condition: "unread_dm", action: read_dm }
+  - { condition: "waiting_on_reply", action: wait }
+  - { condition: "blocker_unknown", action: tasks_list }
+  - { condition: "no_urgent_items", action: wait }

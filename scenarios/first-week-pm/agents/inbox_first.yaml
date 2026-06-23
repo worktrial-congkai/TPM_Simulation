@@ -1,0 +1,15 @@
+id: inbox_first
+policies:
+  - { condition: "unread_email", action: read_email }
+  - { condition: "unread_dm", action: read_dm }
+  - { condition: "NOT tasks_checked", action: tasks_list }
+  - { condition: "blocker_unknown AND NOT waiting_on_reply", action: ask_blocker_owner_dm }
+  - { condition: "unread_dm_from blocker_owner", action: read_dm }
+  - { condition: "blocker_known AND NOT vendor_escalated", action: escalate_vendor }
+  - { condition: "NOT requirements_meeting_held AND NOT requirements_meeting_scheduled", action: schedule_requirements_meeting }
+  - { condition: "stakeholder_conflict_detected AND NOT tradeoff_meeting_scheduled", action: schedule_tradeoff_meeting }
+  - { condition: "blocker_known AND NOT tradeoff_decision", action: write_decision_doc }
+  - { condition: "blocker_known AND stakeholders_not_informed", action: send_status_update }
+  - { condition: "critical_path_task_ready", action: start_next_critical_task }
+  - { condition: "waiting_on_reply", action: wait }
+  - { condition: "no_urgent_items", action: wait }
