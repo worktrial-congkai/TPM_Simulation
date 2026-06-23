@@ -1,0 +1,75 @@
+{
+  "run_id": "7bab4df9-3c0a-44c5-a183-b910f6a89c00",
+  "scenario_id": "first-week-pm",
+  "agent_id": "triage_first",
+  "status": "completed",
+  "metrics": {
+    "total_turns": 2259,
+    "wait_turns": 2227,
+    "launch_sim_datetime": "2026-06-24T11:11:00",
+    "time_to_blocker_known": "2026-06-22T09:59:00",
+    "time_to_vendor_escalated": "2026-06-22T10:11:00",
+    "time_to_critical_path_clear": "2026-06-24T01:11:00",
+    "time_to_tradeoff_decision": "2026-06-22T10:14:00",
+    "launch_slipped_days": 0,
+    "total_tool_count": 32,
+    "chat_tool_count": 5,
+    "email_tool_count": 21,
+    "meeting_tool_count": 2
+  },
+  "rubric": {
+    "total": 7.48,
+    "components": [
+      {
+        "id": "blocker_discovery",
+        "score": 7.1,
+        "weight": 0.24,
+        "check_results": {
+          "found_api_blocker": 0.71,
+          "found_without_spam": 0.0
+        }
+      },
+      {
+        "id": "stakeholder_alignment",
+        "score": 5.0,
+        "weight": 0.18,
+        "check_results": {
+          "exec_briefed": 0.0,
+          "conflict_meeting_held": 1.0
+        }
+      },
+      {
+        "id": "decision_quality",
+        "score": 6.13,
+        "weight": 0.24,
+        "check_results": {
+          "tradeoff_documented": 0.6133,
+          "false_certainty_penalty": 0.0
+        }
+      },
+      {
+        "id": "project_outcome",
+        "score": 10.0,
+        "weight": 0.24,
+        "check_results": {}
+      },
+      {
+        "id": "team_health",
+        "score": 10.0,
+        "weight": 0.05,
+        "check_results": {
+          "no_excessive_spam": 0.0
+        }
+      },
+      {
+        "id": "documentation",
+        "score": 10.0,
+        "weight": 0.05,
+        "check_results": {
+          "decision_log_updated": 1.0,
+          "status_updates_sent": 1.0
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,145 @@
+Interaction timeline (agent ↔ coworkers)
+════════════════════════════════════════════════════════════════════════════════
+  Mon 9:00 AM  agent ──► tasks             tasks_list (4 tasks)
+               why        NOT tasks_checked → tasks_list
+               tasks      PROJ-17 (API integration), PROJ-22 (Design sign-off), PROJ-30 (QA), PROJ-99 (Update team wiki)
+  Mon 9:02 AM  agent ──► alex              chat → alex
+               why        blocker_unknown AND NOT waiting_on_reply → ask_blocker_owner_dm
+               topic      blocker_status
+               message    What's blocking the critical path task?
+  Mon 9:05 AM  alex             ──► agent  reply
+               why        unread_dm_from blocker_owner → read_dm
+               message    PROJ-17 integration is still blocked — I'll share more on DM if needed.
+  Mon 9:17 AM  agent ──► morgan, alex      schedule: Requirements review
+               why        NOT requirements_meeting_held AND NOT requirements_meeting_scheduled → schedule_requirements_meeting
+               when       Mon 11:17 AM–Mon 12:17 PM
+               attendees  morgan, alex
+               type       requirements
+  Mon 9:22 AM  agent ──► morgan            read email from morgan
+               why        unread_email → read_email
+               subject    Accessibility audit
+               body       Scheduled a11y pass for next sprint; not gating this release.
+  Mon 9:59 AM  alex             ──► agent  reply
+               why        unread_dm_from blocker_owner → read_dm
+               message    The blocker is an OAuth scope mismatch on the vendor API — we need the extended read scope approved.
+  Mon 10:11 AM agent ──► vendor_api        email → vendor_api
+               why        blocker_known AND NOT vendor_escalated → escalate_vendor
+               topic      vendor_escalation
+               subject    OAuth scope escalation
+               body       Please approve extended OAuth read scope for PROJ-17.
+  Mon 10:14 AM agent ──► decision-log      write: Launch tradeoff decision
+               why        blocker_known AND NOT tradeoff_decision → write_decision_doc
+               body       Options: (1) scope cut — drop analytics dashboard; (2) delay 2 days; (3) add eng capacity.
+  Mon 10:24 AM agent ──► sam               email → sam
+               why        blocker_known AND stakeholders_not_informed → send_status_update
+               topic      status_update
+               subject    Launch status update
+               body       Blocker identified; vendor escalation and meetings in progress.
+  Mon 10:27 AM agent ──► sam               read email from sam
+               why        unread_email → read_email
+               subject    Vendor contract renewal
+               body       Legal reviewing API vendor MSA — no impact on this week's launch scope.
+  Mon 11:04 AM agent ──► jordan            read email from jordan
+               why        unread_email → read_email
+               subject    Training webinar invite
+               body       CS team webinar next month — optional attendance for PMs.
+  Mon 11:41 AM agent ──► sam, alex, jordan  schedule: Launch tradeoff discussion
+               why        stakeholder_conflict_detected AND NOT tradeoff_meeting_scheduled → schedule_tradeoff_meeting
+               when       Mon 2:41 PM–Mon 3:41 PM
+               attendees  sam, alex, jordan
+               type       tradeoff
+  Mon 11:46 AM agent ──► alex              read email from alex
+               why        unread_email → read_email
+               subject    Unit test flake
+               body       Intermittent test failure in payments module — tracked separately from launch.
+  Mon 12:23 PM agent ──► jordan            read email from jordan
+               why        unread_email → read_email
+               subject    Scope question on launch feature
+               body       Can we add the analytics dashboard to this launch? It should be quick.
+  Mon 1:00 PM  agent ──► morgan            read email from morgan
+               why        unread_email → read_email
+               subject    Icon asset export
+               body       Exported SVG icons to the design folder — housekeeping only.
+  Mon 1:37 PM  agent ──► sam               read email from sam
+               why        unread_email → read_email
+               subject    OKR check-in reminder
+               body       Quarterly OKR doc due next week; no rush on launch day.
+  Mon 2:14 PM  agent ──► morgan            read email from morgan
+               why        unread_email → read_email
+               subject    Figma comment thread
+               body       Left a note on the nav bar — cosmetic only, no launch impact.
+  Mon 2:51 PM  agent ──► jordan            read email from jordan
+               why        unread_email → read_email
+               subject    NPS survey results
+               body       Q2 NPS ticked up — nice win, unrelated to launch scope.
+  Mon 3:28 PM  agent ──► morgan            read email from morgan
+               why        unread_email → read_email
+               subject    Design review notes
+               body       Posted updated mockups in Figma — no action needed before requirements sync.
+  Mon 4:05 PM  agent ──► alex              read email from alex
+               why        unread_email → read_email
+               subject    Dependabot alerts
+               body       Two low-severity npm advisories; eng backlog item, not launch-blocking.
+  Mon 4:42 PM  agent ──► morgan            read email from morgan
+               why        unread_email → read_email
+               subject    Color palette tweak
+               body       Swapped primary blue shade in mocks; trivial change before sign-off.
+  Mon 5:19 PM  agent ──► alex              read email from alex
+               why        unread_email → read_email
+               subject    CI pipeline green
+               body       Nightly build passed. Unrelated to the launch blocker but FYI.
+  Mon 5:56 PM  agent ──► alex              read email from alex
+               why        unread_email → read_email
+               subject    Staging deploy log
+               body       Staging redeploy finished overnight — unrelated to OAuth blocker.
+  Mon 6:33 PM  agent ──► jordan            read email from jordan
+               why        unread_email → read_email
+               subject    Support macro update
+               body       Updated canned replies for billing questions — FYI for CS team.
+  Mon 7:10 PM  agent ──► jordan            read email from jordan
+               why        unread_email → read_email
+               subject    Customer call recap
+               body       Enterprise prospect asked about SSO timeline — not blocking this launch.
+  Mon 7:47 PM  agent ──► sam               read email from sam
+               why        unread_email → read_email
+               subject    Sprint retro notes
+               body       Posted last sprint retro — one action item mentions launch comms timing.
+  Mon 8:24 PM  agent ──► sam               read email from sam
+               why        unread_email → read_email
+               subject    Launch date pressure
+               body       Leadership is asking if we can still hit Friday. What's the real status?
+  Mon 9:01 PM  agent ──► sam               read email from sam
+               why        unread_email → read_email
+               subject    All-hands deck
+               body       Can you skim slide 12 for launch messaging when you have a minute?
+  Mon 9:38 PM  sam              ──► agent  reply
+               why        unread_dm → read_dm
+               message    Reminder — product review deck is in the shared drive when you have time.
+  Mon 9:38 PM  sam              ──► agent  reply
+               why        unread_dm → read_dm
+               message    Can you join a requirements sync this week? Design is waiting on clarity.
+  Mon 9:38 PM  sam              ──► agent  reply
+               why        unread_dm → read_dm
+               message    Got it, thanks.
+  Mon 9:50 PM  alex             ──► agent  reply
+               why        unread_dm → read_dm
+               message    Anyone seen the latest API error rates? Might be unrelated to PROJ-17.
+  Mon 9:50 PM  sam              ──► agent  reply
+               why        unread_dm → read_dm
+               message    Hearing rumors about a launch delay. Anyone know what's up?
+  Tue 10:11 AM vendor_api       ──► alex              PROJ-17 unblocked
+  Tue 11:11 PM alex             ──► agent  PROJ-17 complete
+               task       PROJ-17 (API integration)
+  Tue 11:11 PM agent ──► morgan            PROJ-22 → in_progress
+               why        critical_path_task_ready → start_next_critical_task
+               task       PROJ-22 (Design sign-off)
+  Wed 1:11 AM  morgan           ──► agent  PROJ-22 complete
+               task       PROJ-22 (Design sign-off)
+  Wed 1:11 AM  agent ──► alex              PROJ-30 → in_progress
+               why        critical_path_task_ready → start_next_critical_task
+               task       PROJ-30 (QA)
+  Wed 9:00 AM  jordan           ──► agent  proactive DM (policy scan)
+  Wed 11:11 AM alex             ──► agent  PROJ-30 complete
+               task       PROJ-30 (QA)
+  Wed 11:11 AM alex             ──► launch            launch complete
+════════════════════════════════════════════════════════════════════════════════
