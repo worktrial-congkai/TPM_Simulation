@@ -1,0 +1,26 @@
+Evaluation: first-week-pm / triage_first
+────────────────────────────────────────
+Run status: completed
+
+Component                 Score  Weight
+Blocker discovery          7.1/10     24%
+Stakeholder alignment      5.0/10     18%
+Decision quality           6.1/10     24%
+Project outcome           10.0/10     24%
+Team health               10.0/10      5%
+Documentation             10.0/10      5%
+────────────────────────────────────────
+Total                     7.5/10
+
+Strategy metrics:
+  launch_sim_datetime:      Wed 11:11 AM
+  time_to_blocker_known:    Mon 9:59 AM
+  time_to_vendor_escalated: Mon 10:11 AM
+  time_to_critical_path_clear: Wed 1:11 AM
+  time_to_tradeoff_decision: Mon 10:14 AM
+  launch_slipped_days:      0
+  total_turns:              2259
+  total_tool_count:         32
+  chat_tool_count:          5
+  email_tool_count:         21
+  meeting_tool_count:       2
