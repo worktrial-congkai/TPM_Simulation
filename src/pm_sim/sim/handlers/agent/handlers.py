@@ -6,7 +6,7 @@ from datetime import timedelta
 from typing import Any
 
 from pm_sim.agent.action_log import log_action
-from pm_sim.agent.state import add_to_set, append_to_list, set_flag
+from pm_sim.agent.state import add_to_set, append_to_list, get_flag, set_flag
 from pm_sim.npcs.reply import (
   build_message_context,
   plan_message_reply,
@@ -26,6 +26,7 @@ from pm_sim.tools.meeting import MeetingTool
 from pm_sim.tools.task import TaskTool
 
 OAUTH_MARKER = "OAuth"
+OAUTH_BLOCKER_KEY = "PROJ-17_oauth_scope"
 
 
 def _payload(event: SimEvent) -> dict[str, Any]:
@@ -70,10 +71,25 @@ def handle_agent_chat_read(event: SimEvent, db: SimDatabase) -> list[SimEvent]:
     if msg["sender_id"] != AGENT_ID and not msg.get("read_by_agent")
   ]
   append_to_list(db, "channels_read", channel)
+  blockers_before = get_flag(db, "blockers_known", [])
+  had_oauth_blocker = (
+    isinstance(blockers_before, list) and OAUTH_BLOCKER_KEY in blockers_before
+  )
   for msg in messages:
     if OAUTH_MARKER in msg.get("body", ""):
-      add_to_set(db, "blockers_known", "PROJ-17_oauth_scope")
-  log_action(db, "chat_read", p, {"count": len(messages), "incoming": incoming})
+      add_to_set(db, "blockers_known", OAUTH_BLOCKER_KEY)
+  blockers_after = get_flag(db, "blockers_known", [])
+  oauth_disclosed = (
+    not had_oauth_blocker
+    and isinstance(blockers_after, list)
+    and OAUTH_BLOCKER_KEY in blockers_after
+  )
+  log_action(
+    db,
+    "chat_read",
+    p,
+    {"count": len(messages), "incoming": incoming, "oauth_disclosed": oauth_disclosed},
+  )
   return []
 
 
@@ -87,6 +103,7 @@ def handle_agent_chat_send(event: SimEvent, db: SimDatabase) -> list[SimEvent]:
   if p.get("topic") == "spam_ping":
     raw_id = to if not to.startswith("dm:") else to.split(":", 1)[1]
     append_to_list(db, "spam_ping_sent_to", raw_id)
+    set_flag(db, "spam_ping_total", int(get_flag(db, "spam_ping_total", 0)) + 1)
 
   responder_id, plan = plan_message_reply(
     db,
@@ -215,8 +232,6 @@ def handle_agent_meeting_join(event: SimEvent, db: SimDatabase) -> list[SimEvent
 def handle_agent_meeting_transcript(event: SimEvent, db: SimDatabase) -> list[SimEvent]:
   p = _payload(event)
   result = MeetingTool.get_transcript(db, p["meeting_id"])
-  if result.get("meeting_type") == "requirements":
-    set_flag(db, "requirements_meeting_held", True)
   log_action(db, "meeting_transcript", p, result)
   return []
 

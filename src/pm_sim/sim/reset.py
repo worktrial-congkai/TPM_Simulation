@@ -34,9 +34,11 @@ def _seed_agent_state(db: SimDatabase) -> None:
     "tradeoff_decision": json.dumps(None),
     "vendor_escalated": json.dumps(False),
     "requirements_meeting_held": json.dumps(False),
+    "tradeoff_meeting_held": json.dumps(False),
     "tradeoff_documented": json.dumps(False),
     "meetings_joined": json.dumps([]),
     "spam_ping_sent_to": json.dumps([]),
+    "spam_ping_total": json.dumps(0),
   }
   with db.transaction():
     for key, value in defaults.items():

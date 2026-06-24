@@ -18,11 +18,22 @@ def db(tmp_path: Path):
 def test_observation_after_reset(db) -> None:
   obs = build_observation(db)
   assert obs.blocker_owner == "alex"
+  assert obs.blocker_task_id == "PROJ-17"
   assert obs.tasks_checked is False
   assert obs.blockers_known == ()
   assert obs.vendor_escalated is False
   assert len(obs.unread_channels) == 3
+  assert obs.unread_chat_by_channel == (
+    ("dm:alex", 1),
+    ("dm:sam", 2),
+    ("eng-launch", 2),
+  )
   assert "eng-launch" in obs.unread_channels
   assert "dm:alex" in obs.unread_channels
   assert "dm:sam" in obs.unread_channels
-  assert len(obs.unread_email_ids) == 19
+  assert len(obs.unread_email_ids) == 2
+  assert obs.blocked_tasks == (
+    "PROJ-17 (API integration)",
+    "PROJ-22 (Design sign-off)",
+  )
+  assert obs.health == "BLOCKED"

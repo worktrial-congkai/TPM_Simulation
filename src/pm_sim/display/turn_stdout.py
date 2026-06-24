@@ -19,6 +19,11 @@ class TurnStdoutRenderer:
     if result.flushed_block:
       self._end_live_streak()
 
+    if result.standalone_block:
+      self._end_live_streak()
+      self._console.print(result.standalone_block)
+      self._console.print()
+
     if result.finalize:
       self._end_live_streak()
       return

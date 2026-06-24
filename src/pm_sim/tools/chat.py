@@ -24,9 +24,10 @@ class ChatTool:
       """
       SELECT id, channel, sender_id, body, sent_at
       FROM chat_messages
-      WHERE read_by_agent = 0
+      WHERE read_by_agent = 0 AND sender_id != ?
       ORDER BY sent_at, id
-      """
+      """,
+      (AGENT_ID,),
     ).fetchall()
     return [dict(row) for row in rows]
 
@@ -68,8 +69,8 @@ class ChatTool:
     msg_id = str(uuid.uuid4())
     db.conn.execute(
       """
-      INSERT INTO chat_messages (id, channel, sender_id, body, sent_at)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO chat_messages (id, channel, sender_id, body, sent_at, read_by_agent)
+      VALUES (?, ?, ?, ?, ?, 1)
       """,
       (msg_id, channel, AGENT_ID, body, format_sim_time(sim_time)),
     )

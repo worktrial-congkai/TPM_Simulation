@@ -85,48 +85,47 @@ Each run writes artifacts to `data/runs/<run-id>/`:
 | `eval.json`       | Full rubric report (JSON)                                                                                    |
 
 
-**Example run** (`first-week-pm` / `triage_first`, seed 42): `data/runs/7bab4df9-3c0a-44c5-a183-b910f6a89c00/` 
-Inspect it:
+**Example run** (`first-week-pm` / `triage_first`, seed 42): `data/runs/21049cfc-8c6e-42a0-82c6-3305223062b1/`
+
+[turn.log](data/runs/21049cfc-8c6e-42a0-82c6-3305223062b1/turn.log), [timeline.txt](data/runs/21049cfc-8c6e-42a0-82c6-3305223062b1/timeline.txt), [eval.txt](data/runs/21049cfc-8c6e-42a0-82c6-3305223062b1/eval.txt)
 
 ```sh
-pm-sim run show --run-id 7bab4df9-3c0a-44c5-a183-b910f6a89c00
-pm-sim events log --run-id 7bab4df9-3c0a-44c5-a183-b910f6a89c00
-pm-sim eval first-week-pm --run-id 7bab4df9-3c0a-44c5-a183-b910f6a89c00
+pm-sim run show --run-id 21049cfc-8c6e-42a0-82c6-3305223062b1
+pm-sim events log --run-id 21049cfc-8c6e-42a0-82c6-3305223062b1
+pm-sim eval first-week-pm --run-id 21049cfc-8c6e-42a0-82c6-3305223062b1
 ```
 
-Or browse artifacts directly: [turn.log](data/runs/7bab4df9-3c0a-44c5-a183-b910f6a89c00/turn.log), [timeline.txt](data/runs/7bab4df9-3c0a-44c5-a183-b910f6a89c00/timeline.txt), [eval.txt](data/runs/7bab4df9-3c0a-44c5-a183-b910f6a89c00/eval.txt).
+
+
+
 
 ## Evaluation
 
 `pm-sim eval` scores a run against the scenario rubric (`scenarios/first-week-pm/eval_rubric.yaml`):
 
 
-| Component             | Weight | What it measures                                                     |
-| --------------------- | ------ | -------------------------------------------------------------------- |
-| Blocker discovery     | 24%    | Found the OAuth root cause on time, without excessive chat spam      |
-| Stakeholder alignment | 18%    | Exec briefed and conflict meeting held with eng/design leads         |
-| Decision quality      | 24%    | Tradeoff documented; penalized for false certainty in status updates |
-| Project outcome       | 24%    | Launch on time, delayed with scope cut, or failed                    |
-| Team health           | 5%     | No excessive messaging without progress                              |
-| Documentation         | 5%     | Decision log and status updates sent                                 |
+| Component                | Weight | What it measures                                                |
+| ------------------------ | ------ | --------------------------------------------------------------- |
+| Blocker discovery        | 35%    | Found the OAuth root cause on time, without excessive chat spam |
+| Stakeholder alignment    | 20%    | Tradeoff meeting held with eng and product after scope conflict |
+| Project outcome          | 35%    | Launch on time, delayed with scope cut, or failed               |
+| Communication discipline | 10%    | No excessive messaging without progress                         |
 
 
 **Headline metric:** `launch_sim_datetime` (when the launch milestone completes)
 
 **Strategy metrics:** launch time, time to blocker known, vendor escalated, critical path clear, tradeoff decision, launch slip days, turn counts, and tool usage (chat, email, meeting).
 
-Example `pm-sim eval` output (`triage_first`, run `7bab4df9-3c0a-44c5-a183-b910f6a89c00`):
+Example `pm-sim eval` output (`triage_first`, run `21049cfc-8c6e-42a0-82c6-3305223062b1`):
 
 ```text
 Component                 Score  Weight
-Blocker discovery          7.1/10     24%
-Stakeholder alignment      5.0/10     18%
-Decision quality           6.1/10     24%
-Project outcome           10.0/10     24%
-Team health               10.0/10      5%
-Documentation             10.0/10      5%
+Blocker discovery         10.0/10     35%
+Stakeholder alignment     10.0/10     20%
+Project outcome           10.0/10     35%
+Communication discipline  10.0/10     10%
 ────────────────────────────────────────
-Total                     7.5/10
+Total                    10.0/10
 
 Strategy metrics:
   launch_sim_datetime:      Wed 11:11 AM
@@ -147,10 +146,18 @@ Strategy metrics:
 ```text
 Persona          launch_completed     blocker_found    turns    rubric
 ----------------------------------------------------------------------
-inbox_first      Wed 11:23 PM (+1 slip) Mon 10:11 PM     2969     5.5
-meeting_first    Wed 11:09 AM         Mon 9:57 AM      2967     6.7
-spam_ping        null                 null             3098     0.5
-triage_first     Wed 11:11 AM         Mon 9:59 AM      2259     7.5
+inbox_first      Wed 12:54 PM (+1 slip) Mon 11:42 AM     2963     8.1
+meeting_first    Wed 11:09 AM         Mon 9:57 AM      2967     8.0
+spam_ping        null                 null             3104     0.8
+triage_first     Wed 11:11 AM         Mon 9:59 AM      2871    10.0
+
+Rubric components (/10):
+Persona           Blocker discovery  Stakeholder alignment  Project outcome  Communication discipline
+-----------------------------------------------------------------------------------------------------
+inbox_first                     7.6                   10.0              7.0                      10.0
+meeting_first                  10.0                    0.0             10.0                      10.0
+spam_ping                       0.0                    0.0              0.0                       7.5
+triage_first                   10.0                   10.0             10.0                      10.0
 ```
 
 ## Documentation

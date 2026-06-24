@@ -87,6 +87,25 @@ def test_stdout_renderer_prints_flushed_then_new_turn() -> None:
   assert "[Turn 3," in output
 
 
+def test_stdout_renderer_prints_standalone_world_block() -> None:
+  buffer = StringIO()
+  renderer = TurnStdoutRenderer(Console(file=buffer, force_terminal=True, width=120))
+  renderer.emit(TurnLogPushResult(live_block=_wait_block(5)))
+  renderer.emit(
+    TurnLogPushResult(
+      standalone_block="[WORLD, Mon 9:52 AM, Day 1]\n  EVENT:    alex reply: \"OAuth scope\"",
+    )
+  )
+  renderer.emit(TurnLogPushResult(live_block=_wait_block(6)))
+  renderer.close()
+
+  output = buffer.getvalue()
+  assert "[WORLD, Mon 9:52 AM, Day 1]" in output
+  assert "alex reply" in output
+  assert "[Turn 5," in output
+  assert "[Turn 6," in output
+
+
 def test_stdout_matches_turn_log_collapse_for_wait_streak(tmp_path: Path) -> None:
   fixture = Path(__file__).resolve().parent / "fixtures" / "wait_only.yaml"
   db = reset_scenario("first-week-pm", db_path=tmp_path / "sim.db")

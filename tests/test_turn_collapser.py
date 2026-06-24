@@ -26,7 +26,7 @@ def _wait_block(turn: int, hour: int, minute: int) -> str:
   return "\n".join(
     [
       f"[Turn {turn}, {time_label}, Day 2]",
-      "  OBSERVE:  chat unread: 2 | health: ON_TRACK",
+      "  OBSERVE:  chat unread: alex:1, sam:2 | health: ON_TRACK",
       "  ACTION:   wait",
       "  RESULT:   SIM: +1min",
       "          health: ON_TRACK",

@@ -177,7 +177,11 @@ def _describe_world_event(db: SimDatabase, event_id: str) -> TimelineEntry | Non
   if event_type == "vendor.turnaround_complete":
     task_id = payload.get("task_id", "PROJ-17")
     owner = _task_owner(db, task_id) or "alex"
-    return TimelineEntry(sim_time, 0, "vendor_api", owner, f"{task_id} unblocked")
+    effects = payload.get("world_effects") or []
+    headline = f"vendor turnaround complete ({task_id})"
+    if effects:
+      headline = f"{headline}; {'; '.join(effects)}"
+    return TimelineEntry(sim_time, 0, "vendor_api", owner, headline)
 
   if event_type == "meeting.start":
     meeting_id = payload.get("meeting_id")
@@ -198,7 +202,13 @@ def _describe_world_event(db: SimDatabase, event_id: str) -> TimelineEntry | Non
     details = []
     if meeting:
       details.append(("when", _format_time_range(meeting["start_at"], meeting["end_at"])))
-    headline = f"{meeting_type} meeting ended"
+    title = (meeting or {}).get("title")
+    if title:
+      headline = f"{title} ended"
+    else:
+      headline = f"{meeting_type} meeting ended"
+    for effect in payload.get("world_effects") or []:
+      details.append(("effect", effect))
     return TimelineEntry(sim_time, 0, attendees, "agent", headline, tuple(details))
 
   if event_type == "task.complete":

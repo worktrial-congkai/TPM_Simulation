@@ -1,0 +1,208 @@
+[Turn 1, Mon 9:00 AM, Day 1]
+  OBSERVE:  chat unread: alex:1, sam:2, eng-launch:2 | email unread: 2 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: undiscovered | health: BLOCKED
+  ACTION:   tasks list → PROJ-17 (API integration), PROJ-22 (Design sign-off), PROJ-30 (QA), PROJ-99 (Update team wiki) (tasks_list)
+  WHY:      NOT tasks_checked → tasks_list
+  RESULT:   SIM: +2min
+          PROJ-17 blocked (integration issue), PROJ-22 blocked (requirements meeting not held)
+
+[Turn 2, Mon 9:02 AM, Day 1]
+  OBSERVE:  chat unread: alex:1, sam:2, eng-launch:2 | email unread: 2 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: undiscovered | health: BLOCKED
+  ACTION:   chat send → alex re PROJ-17 (API integration): "What's blocking the critical path task?" (ask_blocker_owner_dm)
+  WHY:      blocker_unknown AND NOT waiting_on_reply → ask_blocker_owner_dm
+  RESULT:   SIM: +3min
+          sent: "What's blocking the critical path task?" → reply ~Mon 9:52 AM (alex)
+
+[Turn 3, Mon 9:05 AM, Day 1]
+  OBSERVE:  chat unread: alex:1, sam:2, eng-launch:2 | email unread: 2 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: undiscovered | awaiting: reply from alex (dm) | health: BLOCKED
+  ACTION:   chat read → alex (read_dm)
+  WHY:      unread_dm_from blocker_owner → read_dm
+  RESULT:   SIM: +12min
+          read from alex: "PROJ-17 integration is still blocked — I'll share more on DM if needed."
+
+[Turn 4, Mon 9:17 AM, Day 1]
+  OBSERVE:  chat unread: sam:2, eng-launch:2 | email unread: 2 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: undiscovered | awaiting: reply from alex (dm) | health: BLOCKED
+  ACTION:   calendar schedule → "Requirements review" re PROJ-22 (Design sign-off) (schedule_requirements_meeting)
+  WHY:      NOT requirements_meeting_held AND NOT requirements_meeting_scheduled → schedule_requirements_meeting
+  RESULT:   SIM: +5min
+          meeting scheduled: Requirements review
+
+[Turn 5, Mon 9:22 AM, Day 1]
+  OBSERVE:  chat unread: sam:2, eng-launch:2 | email unread: 2 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: undiscovered | awaiting: reply from alex (dm) | health: BLOCKED
+  ACTION:   email read → "Scope question on launch feature" (read_email)
+  WHY:      unread_email → read_email
+  RESULT:   SIM: +37min
+          from jordan: "Scope question on launch feature"
+
+[WORLD, Mon 9:52 AM, Day 1]
+  EVENT:    alex reply: "The blocker is an OAuth scope mismatch on the vendor API — we need the extended…"
+
+[Turn 6, Mon 9:59 AM, Day 1]
+  OBSERVE:  chat unread: alex:1, sam:2, eng-launch:2 | email unread: 1 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: discovered (PROJ-17_oauth_scope) | health: BLOCKED
+  ACTION:   chat read → alex (read_dm)
+  WHY:      unread_dm_from blocker_owner → read_dm
+  RESULT:   SIM: +12min
+          read from alex: "The blocker is an OAuth scope mismatch on the vendor API — we need the extended…"
+
+[WORLD, Mon 10:00 AM, Day 1]
+  EVENT:    PROJ-99 complete
+
+[WORLD, Mon 10:11 AM, Day 1]
+  EVENT:    milestone check
+
+[Turn 7, Mon 10:11 AM, Day 1]
+  OBSERVE:  chat unread: sam:2, eng-launch:2 | email unread: 1 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: discovered (PROJ-17_oauth_scope) | health: BLOCKED
+  ACTION:   email send → vendor_api: "OAuth scope escalation": "Please approve extended OAuth read scope for PROJ-17." (escalate_vendor)
+  WHY:      blocker_known AND NOT vendor_escalated → escalate_vendor
+  RESULT:   SIM: +3min
+          24h vendor timer scheduled (~Tue 10:11 AM)
+
+[Turn 8, Mon 10:14 AM, Day 1]
+  OBSERVE:  chat unread: sam:2, eng-launch:2 | email unread: 1 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: discovered (PROJ-17_oauth_scope) | health: BLOCKED
+  ACTION:   docs write → "Launch tradeoff decision": "Options: (1) scope cut — drop analytics dashboard; (2) delay 2 days; (3) add en…" (write_decision_doc)
+  WHY:      blocker_known AND NOT tradeoff_decision → write_decision_doc
+  RESULT:   SIM: +10min
+          doc written: Launch tradeoff decision
+
+[Turn 9, Mon 10:24 AM, Day 1]
+  OBSERVE:  chat unread: sam:2, eng-launch:2 | email unread: 1 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: discovered (PROJ-17_oauth_scope) | health: BLOCKED
+  ACTION:   email send → sam: "Launch status update": "Blocker identified; vendor escalation and meetings in progress." (send_status_update)
+  WHY:      blocker_known AND stakeholders_not_informed → send_status_update
+  RESULT:   SIM: +3min
+          Reply scheduled ~Mon 10:55 AM (sam)
+
+[Turn 10, Mon 10:27 AM, Day 1]
+  OBSERVE:  chat unread: sam:2, eng-launch:2 | email unread: 1 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: discovered (PROJ-17_oauth_scope) | awaiting: reply from sam (dm) | health: BLOCKED
+  ACTION:   email read → "Launch date pressure" (read_email)
+  WHY:      unread_email → read_email
+  RESULT:   SIM: +37min
+          from sam: "Launch date pressure"
+
+[WORLD, Mon 10:55 AM, Day 1]
+  EVENT:    sam reply: "Got it, thanks."
+
+[Turn 11, Mon 11:04 AM, Day 1]
+  OBSERVE:  chat unread: sam:3, eng-launch:2 | email unread: 0 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: discovered (PROJ-17_oauth_scope) | stakeholder conflict: Jordan Lee (customer success): "Scope question on launch feature" vs Sam Rivera (product): "Launch date pressure" | health: BLOCKED
+  ACTION:   calendar schedule → "Launch tradeoff discussion" (schedule_tradeoff_meeting)
+  WHY:      stakeholder_conflict_detected AND NOT tradeoff_meeting_scheduled → schedule_tradeoff_meeting
+  RESULT:   SIM: +5min
+          meeting scheduled: Launch tradeoff discussion
+
+[Turn 12, Mon 11:09 AM, Day 1]
+  OBSERVE:  chat unread: sam:3, eng-launch:2 | email unread: 0 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: discovered (PROJ-17_oauth_scope) | stakeholder conflict: Jordan Lee (customer success): "Scope question on launch feature" vs Sam Rivera (product): "Launch date pressure" | health: BLOCKED
+  ACTION:   chat read → sam (read_dm)
+  WHY:      unread_dm → read_dm
+  RESULT:   SIM: +12min
+          read from sam: "Reminder — product review deck is in the shared drive when you have time."
+          read from sam: "Can you join a requirements sync this week? Design is waiting on clarity."
+          read from sam: "Got it, thanks."
+
+[WORLD, Mon 11:17 AM, Day 1]
+  EVENT:    meeting started
+
+[Turn 13, Mon 11:21 AM, Day 1]
+  OBSERVE:  chat unread: eng-launch:2 | email unread: 0 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: discovered (PROJ-17_oauth_scope) | stakeholder conflict: Jordan Lee (customer success): "Scope question on launch feature" vs Sam Rivera (product): "Launch date pressure" | health: BLOCKED
+  ACTION:   chat read → eng-launch (read_dm)
+  WHY:      unread_dm → read_dm
+  RESULT:   SIM: +12min
+          read from alex: "Anyone seen the latest API error rates? Might be unrelated to PROJ-17."
+          read from sam: "Hearing rumors about a launch delay. Anyone know what's up?"
+
+[Turn 57, Mon 12:16 PM, Day 1]
+  OBSERVE:  chat unread: none | email unread: 0 | blockers: PROJ-17 (API integration), PROJ-22 (Design sign-off) | blocker cause: discovered (PROJ-17_oauth_scope) | stakeholder conflict: Jordan Lee (customer success): "Scope question on launch feature" vs Sam Rivera (product): "Launch date pressure" | health: BLOCKED
+  ACTION:   wait
+  WHY:      no_urgent_items → wait
+  RESULT:   SIM: +1min
+          health: BLOCKED
+
+[WORLD, Mon 12:17 PM, Day 1]
+  EVENT:    Requirements review ended; PROJ-22 (Design sign-off) unblocked
+
+[Turn 164–224, Mon 2:03–03:03 PM, Day 1]
+  OBSERVE:  chat unread: none | email unread: 0 | blockers: PROJ-17 (API integration) | blocker cause: discovered (PROJ-17_oauth_scope) | stakeholder conflict: Jordan Lee (customer success): "Scope question on launch feature" vs Sam Rivera (product): "Launch date pressure" | health: BLOCKED
+  ACTION:   wait
+  WHY:      no_urgent_items → wait
+  RESULT:   SIM: +61min (61× wait)
+          health: BLOCKED
+
+[WORLD, Mon 2:04 PM, Day 1]
+  EVENT:    meeting started
+
+[WORLD, Mon 3:04 PM, Day 1]
+  EVENT:    Launch tradeoff discussion ended
+
+[Turn 1371, Tue 10:10 AM, Day 2]
+  OBSERVE:  chat unread: none | email unread: 0 | blockers: PROJ-17 (API integration) | blocker cause: discovered (PROJ-17_oauth_scope) | health: BLOCKED
+  ACTION:   wait
+  WHY:      no_urgent_items → wait
+  RESULT:   SIM: +1min
+          health: AT_RISK
+
+[WORLD, Tue 10:11 AM, Day 2]
+  EVENT:    vendor turnaround complete; PROJ-17 (API integration) unblocked
+
+[Turn 1420–2151, Tue 10:59–11:10 PM, Day 2]
+  OBSERVE:  chat unread: none | email unread: 0 | blockers: none | health: AT_RISK
+  ACTION:   wait
+  WHY:      no_urgent_items → wait
+  RESULT:   SIM: +732min (732× wait)
+          health: AT_RISK
+
+[WORLD, Tue 11:00 AM, Day 2]
+  EVENT:    no launch slip — launch date unchanged (blocker resolved)
+
+[WORLD, Tue 11:11 PM, Day 2]
+  EVENT:    PROJ-17 complete
+
+[WORLD, Tue 11:11 PM, Day 2]
+  EVENT:    milestone check
+
+[Turn 2152, Tue 11:11 PM, Day 2]
+  OBSERVE:  chat unread: none | email unread: 0 | blockers: none | health: AT_RISK
+  ACTION:   task start → PROJ-22 (Design sign-off) (start_next_critical_task)
+  WHY:      critical_path_task_ready → start_next_critical_task
+  RESULT:   SIM: +1min
+          task started: PROJ-22 (Design sign-off)
+
+[Turn 2271, Wed 1:10 AM, Day 3]
+  OBSERVE:  chat unread: none | email unread: 0 | blockers: none | health: AT_RISK
+  ACTION:   wait
+  WHY:      no_urgent_items → wait
+  RESULT:   SIM: +1min
+          health: AT_RISK
+
+[WORLD, Wed 1:11 AM, Day 3]
+  EVENT:    PROJ-22 complete
+
+[WORLD, Wed 1:11 AM, Day 3]
+  EVENT:    milestone check
+
+[Turn 2272, Wed 1:11 AM, Day 3]
+  OBSERVE:  chat unread: none | email unread: 0 | blockers: none | health: AT_RISK
+  ACTION:   task start → PROJ-30 (QA) (start_next_critical_task)
+  WHY:      critical_path_task_ready → start_next_critical_task
+  RESULT:   SIM: +1min
+          task started: PROJ-30 (QA)
+
+[Turn 2740, Wed 8:59 AM, Day 3]
+  OBSERVE:  chat unread: none | email unread: 0 | blockers: none | health: AT_RISK
+  ACTION:   wait
+  WHY:      no_urgent_items → wait
+  RESULT:   SIM: +1min
+          health: AT_RISK
+
+[WORLD, Wed 9:00 AM, Day 3]
+  EVENT:    npc.policy_scan
+
+[Turn 2871, Wed 11:10 AM, Day 3]
+  OBSERVE:  chat unread: none | email unread: 0 | blockers: none | health: AT_RISK
+  ACTION:   wait
+  WHY:      no_urgent_items → wait
+  RESULT:   SIM: +1min
+          health: ON_TRACK
+
+[WORLD, Wed 11:11 AM, Day 3]
+  EVENT:    PROJ-30 complete
+
+[WORLD, Wed 11:11 AM, Day 3]
+  EVENT:    launch complete
+

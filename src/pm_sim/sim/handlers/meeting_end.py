@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from pm_sim.npcs.actions import execute_world_action, plan_reply
+import json
+
+from pm_sim.agent.state import set_flag
+from pm_sim.npcs.actions import PROJ22_UNBLOCKED_LABEL, execute_world_action, plan_reply
 from pm_sim.npcs.resolver import pick_meeting_template
 from pm_sim.npcs.types import NpcContext
 from pm_sim.sim.db import SimDatabase
@@ -43,8 +46,24 @@ def handle_meeting_end(event: SimEvent, db: SimDatabase) -> list[SimEvent]:
     meeting_type=meeting_type,
   )
   template = pick_meeting_template(db, ctx)
+  world_effects: list[str] = []
   if template is not None:
     plan = plan_reply(db, template, ctx)
-    execute_world_action(db, plan.action)
+    if execute_world_action(db, plan.action):
+      if plan.action == "unblock_proj_22":
+        world_effects.append(PROJ22_UNBLOCKED_LABEL)
+
+  if meeting_type == "requirements":
+    set_flag(db, "requirements_meeting_held", True)
+  elif meeting_type == "tradeoff":
+    set_flag(db, "tradeoff_meeting_held", True)
+
+  if world_effects:
+    payload = dict(event.payload or {})
+    payload["world_effects"] = world_effects
+    db.conn.execute(
+      "UPDATE events SET payload = ? WHERE id = ?",
+      (json.dumps(payload), event.id),
+    )
 
   return []
