@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from pm_sim.agent.conditions import evaluate_condition
+from pm_sim.agent.conditions import evaluate_condition, stakeholder_conflicts
 from pm_sim.agent.observation import build_observation
 from pm_sim.agent.state import add_to_set, set_flag
 from pm_sim.sim.reset import reset_scenario
@@ -43,6 +43,23 @@ def test_blocker_known_and_not_vendor_escalated(db) -> None:
   set_flag(db, "vendor_escalated", True)
   obs = build_observation(db)
   assert evaluate_condition("blocker_known AND NOT vendor_escalated", obs, db) is False
+
+
+def test_stakeholder_conflicts_requires_both_emails_read(db) -> None:
+  assert stakeholder_conflicts(db) == ()
+  db.conn.execute(
+    "UPDATE emails SET read_by_agent = 1 WHERE sender_id = 'jordan'"
+  )
+  db.conn.commit()
+  assert stakeholder_conflicts(db) == ()
+  db.conn.execute("UPDATE emails SET read_by_agent = 1 WHERE sender_id = 'sam'")
+  db.conn.commit()
+  conflicts = stakeholder_conflicts(db)
+  assert len(conflicts) == 2
+  assert conflicts[0].sender_id == "jordan"
+  assert conflicts[1].sender_id == "sam"
+  obs = build_observation(db)
+  assert evaluate_condition("stakeholder_conflict_detected", obs, db) is True
 
 
 def test_no_urgent_items_when_inbox_clear_and_blocker_known(db) -> None:

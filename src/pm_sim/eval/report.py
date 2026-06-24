@@ -25,10 +25,8 @@ def _format_clock(iso_time: str | None) -> str:
 _COMPONENT_LABELS = {
   "blocker_discovery": "Blocker discovery",
   "stakeholder_alignment": "Stakeholder alignment",
-  "decision_quality": "Decision quality",
   "project_outcome": "Project outcome",
-  "team_health": "Team health",
-  "documentation": "Documentation",
+  "communication_discipline": "Communication discipline",
 }
 
 
@@ -153,6 +151,39 @@ def format_compare_row(agent_id: str, report: EvalReport) -> str:
   )
 
 
+def _component_scores_by_id(report: EvalReport) -> dict[str, float]:
+  return {comp.component_id: comp.score for comp in report.rubric.components}
+
+
+def format_compare_rubric_rows(reports: list[EvalReport]) -> list[str]:
+  """Rubric component breakdown rows for compare-agents output."""
+  if not reports:
+    return []
+
+  sorted_reports = sorted(reports, key=lambda r: r.agent_id)
+  component_ids = [comp.component_id for comp in sorted_reports[0].rubric.components]
+  labels = [_COMPONENT_LABELS.get(component_id, component_id) for component_id in component_ids]
+  col_widths = [len(label) + 2 for label in labels]
+
+  header = f"{'Persona':<16}" + "".join(
+    f"{label:>{width}}" for label, width in zip(labels, col_widths)
+  )
+  lines = [
+    "",
+    "Rubric components (/10):",
+    header,
+    "-" * len(header),
+  ]
+  for report in sorted_reports:
+    scores = _component_scores_by_id(report)
+    row = f"{report.agent_id:<16}" + "".join(
+      f"{scores.get(component_id, 0.0):>{width}.1f}"
+      for component_id, width in zip(component_ids, col_widths)
+    )
+    lines.append(row)
+  return lines
+
+
 def format_compare_table(reports: list[EvalReport]) -> str:
   header = (
     f"{'Persona':<16} {'launch_completed':<20} {'blocker_found':<16} "
@@ -161,4 +192,5 @@ def format_compare_table(reports: list[EvalReport]) -> str:
   lines = [header, "-" * len(header)]
   for report in sorted(reports, key=lambda r: r.agent_id):
     lines.append(format_compare_row(report.agent_id, report))
+  lines.extend(format_compare_rubric_rows(reports))
   return "\n".join(lines)

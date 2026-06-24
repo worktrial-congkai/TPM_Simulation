@@ -237,7 +237,7 @@ Defined in `src/pm_sim/agent/conditions.py`:
 | `unread_dm` / `unread_email`                | Unread messages exist                                 |
 | `unread_dm_from <id>`                       | Unread DM from specific coworker                      |
 | `waiting_on_reply`                          | Pending NPC reply event                               |
-| `can_spam_ping`                             | Spam targets not exhausted                            |
+| `can_spam_ping`                             | Fewer than 15 low-value pings sent (round-robin across coworkers) |
 | `critical_path_task_ready`                  | A critical-path `todo` task has all dependencies done |
 | `no_urgent_items`                           | Nothing urgent remaining                              |
 

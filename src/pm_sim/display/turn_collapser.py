@@ -119,6 +119,7 @@ class TurnLogPushResult:
   live_block: str | None = None
   finalize: bool = False
   in_place: bool = False
+  standalone_block: str | None = None
 
 
 class TurnLogCollapser:

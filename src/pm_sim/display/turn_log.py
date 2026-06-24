@@ -7,13 +7,33 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from pm_sim.agent.state import get_flag
-from pm_sim.agent.types import AgentAction, Observation
+from pm_sim.agent.types import AgentAction, Observation, PendingReply, StakeholderConflict
 from pm_sim.display.turn_collapser import TurnLogCollapser, TurnLogPushResult, format_collapsed_block
 from pm_sim.sim.clock import parse_sim_time
 from pm_sim.sim.db import SimDatabase
 
-OAUTH_BLOCKER_KEY = "PROJ-17_oauth_scope"
+OAUTH_DISCLOSED_LABEL = "OAuth scope disclosed → blocker_known"
+
+
+def _format_chat_read_result(result: dict[str, Any]) -> str | None:
+  incoming = result.get("incoming", [])
+  if incoming:
+    lines = [
+      f'read from {msg["sender_id"]}: {_quote_snippet(msg["body"])}'
+      for msg in incoming
+    ]
+    if result.get("oauth_disclosed"):
+      lines.append(OAUTH_DISCLOSED_LABEL)
+    return "\n".join(lines)
+  count = result.get("count", 0)
+  if count:
+    return f"{count} message(s) read"
+  return None
+
+
+def _append_result_summary(lines: list[str], summary: str) -> None:
+  for part in summary.split("\n"):
+    lines.append(f"          {part}")
 
 
 def _quote_snippet(text: str, max_len: int = 80) -> str:
@@ -42,6 +62,26 @@ def _task_title(db: SimDatabase, task_id: str) -> str | None:
     (task_id,),
   ).fetchone()
   return row["title"] if row else None
+
+
+def _meeting_title(db: SimDatabase, meeting_id: str | None) -> str | None:
+  if not meeting_id:
+    return None
+  row = db.conn.execute(
+    "SELECT title FROM meetings WHERE id = ?",
+    (meeting_id,),
+  ).fetchone()
+  return row["title"] if row else None
+
+
+def _format_task_ref(task_id: str | None, db: SimDatabase | None) -> str:
+  if not task_id:
+    return ""
+  if db is not None:
+    title = _task_title(db, task_id)
+    if title:
+      return f" re {_task_label(task_id, title)}"
+  return f" re {task_id}"
 
 
 def _blocked_task_labels(db: SimDatabase) -> list[str]:
@@ -83,6 +123,16 @@ def _format_email_action(payload: dict[str, Any]) -> str:
   if body:
     parts.append(_quote_snippet(body))
   return ": ".join(parts)
+
+
+def _format_reply_channel(channel: str) -> str:
+  if channel.startswith("dm:"):
+    return "dm"
+  return channel or "chat"
+
+
+def _format_pending_reply(reply: PendingReply) -> str:
+  return f"reply from {reply.actor_id} ({_format_reply_channel(reply.channel)})"
 
 
 def _pending_npc_replies(db: SimDatabase) -> list[tuple[str, datetime]]:
@@ -154,12 +204,28 @@ def _describe_processed_event(db: SimDatabase, event_id: str) -> str:
       return f"{actor_id or 'npc'} reply: {_quote_snippet(body)}"
     return f"{actor_id or 'npc'} reply"
   if event_type == "vendor.turnaround_complete":
-    return "vendor turnaround complete"
+    effects = payload.get("world_effects") or []
+    headline = "vendor turnaround complete"
+    if effects:
+      return f"{headline}; {'; '.join(effects)}"
+    return headline
   if event_type == "meeting.start":
     title = payload.get("title")
     if title:
       return f"meeting started: {title}"
     return "meeting started"
+  if event_type == "meeting.end":
+    meeting_id = payload.get("meeting_id")
+    title = _meeting_title(db, meeting_id)
+    meeting_type = payload.get("meeting_type", "meeting")
+    if title:
+      headline = f"{title} ended"
+    else:
+      headline = f"{meeting_type} meeting ended"
+    world_effects = payload.get("world_effects") or []
+    if world_effects:
+      return f"{headline}; {'; '.join(world_effects)}"
+    return headline
   if event_type == "task.complete":
     return f"{payload.get('task_id', 'task')} complete"
   if event_type == "milestone.check":
@@ -169,6 +235,11 @@ def _describe_processed_event(db: SimDatabase, event_id: str) -> str:
     if launch and launch["status"] == "completed":
       return "launch complete"
     return "milestone check"
+  if event_type == "milestone.drift":
+    effects = payload.get("world_effects") or []
+    if effects:
+      return effects[0]
+    return "milestone drift check"
   if event_type == "agent.chat_send":
     to = payload.get("to", "?")
     body = payload.get("body", "")
@@ -183,6 +254,44 @@ def _describe_processed_event(db: SimDatabase, event_id: str) -> str:
   return event_type
 
 
+def _is_world_event(event_type: str) -> bool:
+  return not event_type.startswith("agent.")
+
+
+def _event_start_time(db: SimDatabase, event_id: str) -> datetime | None:
+  row = db.conn.execute(
+    "SELECT start_ts FROM events WHERE id = ?",
+    (event_id,),
+  ).fetchone()
+  if row is None:
+    return None
+  return parse_sim_time(row["start_ts"])
+
+
+def partition_processed_events(
+  db: SimDatabase,
+  event_ids: list[str],
+  turn_start: datetime,
+) -> tuple[list[str], list[str]]:
+  """Split processed events into at-turn-start vs mid-turn world events."""
+  at_start: list[str] = []
+  mid_turn: list[str] = []
+  for event_id in event_ids:
+    row = db.conn.execute(
+      "SELECT event_type FROM events WHERE id = ?",
+      (event_id,),
+    ).fetchone()
+    if row is None or not _is_world_event(row["event_type"]):
+      at_start.append(event_id)
+      continue
+    start_ts = _event_start_time(db, event_id)
+    if start_ts is not None and start_ts > turn_start:
+      mid_turn.append(event_id)
+    else:
+      at_start.append(event_id)
+  return at_start, mid_turn
+
+
 def _world_event_labels(db: SimDatabase, event_ids: list[str]) -> list[str]:
   labels: list[str] = []
   for event_id in event_ids:
@@ -190,10 +299,32 @@ def _world_event_labels(db: SimDatabase, event_ids: list[str]) -> list[str]:
       "SELECT event_type FROM events WHERE id = ?",
       (event_id,),
     ).fetchone()
-    if row is None or row["event_type"].startswith("agent."):
+    if row is None or not _is_world_event(row["event_type"]):
       continue
     labels.append(_describe_processed_event(db, event_id))
   return labels
+
+
+def format_world_event_block(
+  event_id: str,
+  db: SimDatabase,
+  *,
+  start_time: datetime,
+) -> str | None:
+  """Format a standalone log block for a world event at its scheduled sim time."""
+  start_ts = _event_start_time(db, event_id)
+  if start_ts is None:
+    return None
+  row = db.conn.execute(
+    "SELECT event_type FROM events WHERE id = ?",
+    (event_id,),
+  ).fetchone()
+  if row is None or not _is_world_event(row["event_type"]):
+    return None
+  day_label = _sim_day_label(start_ts, start_time)
+  header = f"[WORLD, {_format_clock(start_ts)}, {day_label}]"
+  description = _describe_processed_event(db, event_id)
+  return f"{header}\n  EVENT:    {description}"
 
 
 def _describe_tool_result(db: SimDatabase, turn: int, action: AgentAction) -> str | None:
@@ -226,22 +357,21 @@ def _describe_tool_result(db: SimDatabase, turn: int, action: AgentAction) -> st
     return "message sent"
 
   if action_type == "chat_read":
-    blockers_known = get_flag(db, "blockers_known", [])
-    if isinstance(blockers_known, list) and OAUTH_BLOCKER_KEY in blockers_known:
-      return "OAuth scope disclosed → blocker_known"
-    incoming = result.get("incoming", [])
-    if incoming:
-      parts = [
-        f'read from {msg["sender_id"]}: {_quote_snippet(msg["body"])}'
-        for msg in incoming
-      ]
-      return ", ".join(parts)
-    count = result.get("count", 0)
-    return f"{count} message(s) read"
+    return _format_chat_read_result(result)
 
   if action_type == "email_read":
-    count = result.get("count", 0)
-    return f"{count} email(s) read"
+    subject = result.get("subject", "")
+    sender = result.get("sender_id", "")
+    if subject:
+      if sender:
+        return f"from {sender}: {_quote_snippet(subject, max_len=60)}"
+      return f"read: {_quote_snippet(subject, max_len=60)}"
+    email_id = payload.get("email_id")
+    if email_id and db is not None:
+      stored_subject = _email_subject(db, email_id)
+      if stored_subject:
+        return f"read: {_quote_snippet(stored_subject, max_len=60)}"
+    return "email read"
 
   if action_type == "email_send":
     topic = payload.get("topic")
@@ -294,12 +424,35 @@ def _describe_tool_result(db: SimDatabase, turn: int, action: AgentAction) -> st
   return None
 
 
-def format_observation_line(obs: Observation, db: SimDatabase, health: str) -> str:
-  unread_chat = len(obs.unread_channels)
-  unread_email = len(obs.unread_email_ids)
-  blocker_labels = _blocked_task_labels(db)
+def _format_chat_channel_label(channel: str) -> str:
+  if channel.startswith("dm:"):
+    return channel.split(":", 1)[1]
+  return channel
+
+
+def _format_chat_unread(counts: tuple[tuple[str, int], ...]) -> str:
+  if not counts:
+    return "chat unread: none"
   parts = [
-    f"chat unread: {unread_chat}",
+    f"{_format_chat_channel_label(channel)}:{count}"
+    for channel, count in counts
+  ]
+  return f"chat unread: {', '.join(parts)}"
+
+
+def _format_stakeholder_conflicts(conflicts: tuple[StakeholderConflict, ...]) -> str:
+  parts = [
+    f"{conflict.name} ({conflict.role}): {_quote_snippet(conflict.subject, max_len=50)}"
+    for conflict in conflicts
+  ]
+  return "stakeholder conflict: " + " vs ".join(parts)
+
+
+def format_observation_line(obs: Observation) -> str:
+  unread_email = len(obs.unread_email_ids)
+  blocker_labels = list(obs.blocked_tasks)
+  parts = [
+    _format_chat_unread(obs.unread_chat_by_channel),
     f"email unread: {unread_email}",
     f"blockers: {', '.join(blocker_labels) if blocker_labels else 'none'}",
   ]
@@ -311,14 +464,16 @@ def format_observation_line(obs: Observation, db: SimDatabase, health: str) -> s
     else:
       parts.append("blocker cause: undiscovered")
 
-  pending = _pending_npc_replies(db)
-  if pending:
-    await_parts = [f"{actor} ~{_format_clock(at)}" for actor, at in pending[:3]]
-    parts.append(f"awaiting: {', '.join(await_parts)}")
-  elif obs.waiting_on_reply:
-    parts.append("awaiting: reply")
+  if obs.pending_replies:
+    awaiting = ", ".join(
+      _format_pending_reply(reply) for reply in obs.pending_replies[:3]
+    )
+    parts.append(f"awaiting: {awaiting}")
 
-  parts.append(f"health: {health}")
+  if obs.stakeholder_conflicts:
+    parts.append(_format_stakeholder_conflicts(obs.stakeholder_conflicts))
+
+  parts.append(f"health: {obs.health}")
   return "OBSERVE:  " + " | ".join(parts)
 
 
@@ -350,7 +505,14 @@ def _format_action_target(action: AgentAction, db: SimDatabase | None = None) ->
       if subject:
         return f"email read → {_quote_snippet(subject, max_len=60)} ({name})"
     return f"email read ({name})"
-  if name in ("ask_blocker_owner_dm", "spam_ping_dm"):
+  if name == "ask_blocker_owner_dm":
+    target = payload.get("to", "?")
+    body = payload.get("body", "")
+    task_ref = _format_task_ref(payload.get("task_id"), db)
+    if body:
+      return f"chat send → {target}{task_ref}: {_quote_snippet(body)} ({name})"
+    return f"chat send → {target}{task_ref} ({name})"
+  if name == "spam_ping_dm":
     target = payload.get("to", "?")
     body = payload.get("body", "")
     if body:
@@ -361,7 +523,8 @@ def _format_action_target(action: AgentAction, db: SimDatabase | None = None) ->
     return f"{detail} ({name})"
   if name == "schedule_requirements_meeting":
     title = payload.get("title", "Requirements review")
-    return f"calendar schedule → {_quote_snippet(title, max_len=60)} ({name})"
+    task_ref = _format_task_ref(payload.get("task_id"), db)
+    return f"calendar schedule → {_quote_snippet(title, max_len=60)}{task_ref} ({name})"
   if name == "schedule_tradeoff_meeting":
     title = payload.get("title", "Launch tradeoff discussion")
     return f"calendar schedule → {_quote_snippet(title, max_len=60)} ({name})"
@@ -408,7 +571,7 @@ def format_result_line(
     if action.type == "tool" and db is not None and turn is not None:
       summary = _describe_tool_result(db, turn, action)
       if summary:
-        lines.append(f"          {summary}")
+        _append_result_summary(lines, summary)
     if processed_event_ids and db is not None:
       if action.type == "tool":
         labels = _world_event_labels(db, processed_event_ids)
@@ -432,6 +595,12 @@ def format_result_line(
   return "RESULT:   ok"
 
 
+def format_why_line(action: AgentAction) -> str | None:
+  if not action.policy_condition or not action.name:
+    return None
+  return f"WHY:      {action.policy_condition} → {action.name}"
+
+
 def format_turn_block(
   turn: int,
   obs: Observation,
@@ -445,7 +614,8 @@ def format_turn_block(
 ) -> str:
   day_label = _sim_day_label(obs.sim_time, start_time)
   header = f"[Turn {turn}, {_format_clock(obs.sim_time)}, {day_label}]"
-  observe = format_observation_line(obs, db, health)
+  observe = format_observation_line(obs)
+  why = format_why_line(action)
   action_line = f"ACTION:   {_format_action_target(action, db)}"
   result = format_result_line(
     action,
@@ -455,7 +625,11 @@ def format_turn_block(
     health=health if action.type == "wait" else None,
     minutes_advanced=minutes_advanced,
   )
-  return "\n".join([header, f"  {observe}", f"  {action_line}", f"  {result}"])
+  lines = [header, f"  {observe}", f"  {action_line}"]
+  if why:
+    lines.append(f"  {why}")
+  lines.append(f"  {result}")
+  return "\n".join(lines)
 
 
 def append_turn_log(path: Path, block: str) -> None:
@@ -533,6 +707,12 @@ class CollapsingTurnLogWriter:
       )
     return result
 
+  def append_standalone_block(self, block: str) -> None:
+    """Append a non-turn block (e.g. mid-turn world event) without collapsing."""
+    with self.path.open("a", encoding="utf-8") as f:
+      f.write(block)
+      f.write("\n\n")
+
   def _write_new_block(self, block: str) -> None:
     with self.path.open("a", encoding="utf-8") as f:
       self._last_offset = f.tell()
@@ -543,11 +723,19 @@ class CollapsingTurnLogWriter:
     if self._last_offset is None:
       self._write_new_block(block)
       return
-    with self.path.open("r+", encoding="utf-8") as f:
+    encoded_block = block.encode("utf-8")
+    with self.path.open("r+b") as f:
+      f.seek(self._last_offset)
+      rest = f.read()
+      separator = b"\n\n"
+      sep_at = rest.find(separator)
+      tail = rest[sep_at + len(separator):] if sep_at >= 0 else b""
       f.seek(self._last_offset)
       f.truncate()
-      f.write(block)
-      f.write("\n\n")
+      f.write(encoded_block)
+      f.write(separator)
+      if tail:
+        f.write(tail)
 
 
 def export_action_log_json(db: SimDatabase, run_id: str, path: Path) -> None:

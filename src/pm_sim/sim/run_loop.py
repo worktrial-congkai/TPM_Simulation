@@ -19,6 +19,8 @@ from pm_sim.display.turn_log import (
   format_action_label,
   format_run_summary,
   format_turn_block,
+  format_world_event_block,
+  partition_processed_events,
 )
 from pm_sim.eval.metrics import compute_run_metrics
 from pm_sim.eval.report import evaluate_run, write_eval_artifacts
@@ -180,6 +182,9 @@ def run_simulation(
         db.conn.commit()
 
       if not (action.type == "wait" and not processed):
+        at_start_events, mid_turn_events = partition_processed_events(
+          db, processed, obs.sim_time,
+        )
         block = format_turn_block(
           turn,
           obs,
@@ -187,7 +192,7 @@ def run_simulation(
           db,
           start_time=start_time,
           health=health,
-          processed_event_ids=processed,
+          processed_event_ids=at_start_events,
           minutes_advanced=minutes_advanced,
         )
         _record_turn(
@@ -197,6 +202,14 @@ def run_simulation(
           action_label=format_action_label(action, db),
           minutes_advanced=minutes_advanced,
         )
+        for event_id in mid_turn_events:
+          world_block = format_world_event_block(
+            event_id, db, start_time=start_time,
+          )
+          if world_block:
+            turn_log_writer.append_standalone_block(world_block)
+            if on_turn:
+              on_turn(TurnLogPushResult(standalone_block=world_block))
 
       if get_sim_time(db) >= end_time:
         break

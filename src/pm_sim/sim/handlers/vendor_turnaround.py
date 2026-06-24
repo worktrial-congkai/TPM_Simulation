@@ -2,13 +2,23 @@
 
 from __future__ import annotations
 
+import json
+
 from pm_sim.sim.db import SimDatabase
 from pm_sim.sim.events import SimEvent
 from pm_sim.sim.task_timers import schedule_task_complete
 
+PROJ17_UNBLOCKED_LABEL = "PROJ-17 (API integration) unblocked"
+
 
 def handle_vendor_turnaround(event: SimEvent, db: SimDatabase) -> list[SimEvent]:
   task_id = event.payload.get("task_id", "PROJ-17")
+  row = db.conn.execute(
+    "SELECT status FROM tasks WHERE id = ?",
+    (task_id,),
+  ).fetchone()
+  was_blocked = row is not None and row["status"] == "blocked"
+
   db.conn.execute(
     """
     UPDATE tasks
@@ -17,6 +27,14 @@ def handle_vendor_turnaround(event: SimEvent, db: SimDatabase) -> list[SimEvent]
     """,
     (task_id,),
   )
+
+  if was_blocked:
+    payload = dict(event.payload or {})
+    payload["world_effects"] = [PROJ17_UNBLOCKED_LABEL]
+    db.conn.execute(
+      "UPDATE events SET payload = ? WHERE id = ?",
+      (json.dumps(payload), event.id),
+    )
 
   followups: list[SimEvent] = []
   completion = schedule_task_complete(

@@ -27,6 +27,7 @@ def test_ask_blocker_owner_dm(db, world) -> None:
   action = resolve_action("ask_blocker_owner_dm", obs, db, world=world)
   assert action.event_type == "agent.chat_send"
   assert action.payload["to"] == "alex"
+  assert action.payload["task_id"] == "PROJ-17"
   assert action.payload["topic"] == "blocker_status"
 
 
@@ -36,6 +37,14 @@ def test_escalate_vendor(db, world) -> None:
   assert action.event_type == "agent.email_send"
   assert action.payload["to"] == "vendor_api"
   assert action.payload["topic"] == "vendor_escalation"
+
+
+def test_schedule_requirements_meeting_targets_proj22(db, world) -> None:
+  obs = build_observation(db)
+  action = resolve_action("schedule_requirements_meeting", obs, db, world=world)
+  assert action.event_type == "agent.calendar_schedule"
+  assert action.payload["task_id"] == "PROJ-22"
+  assert action.payload["meeting_type"] == "requirements"
 
 
 def test_start_next_critical_task_targets_proj22(db, world) -> None:

@@ -29,7 +29,14 @@ def test_send_inserts_dm_row(db) -> None:
   result = ChatTool.send(db, "alex", "What's blocking PROJ-17?")
   assert result["channel"] == "dm:alex"
   row = db.conn.execute(
-    "SELECT body FROM chat_messages WHERE id = ?",
+    "SELECT body, read_by_agent FROM chat_messages WHERE id = ?",
     (result["id"],),
   ).fetchone()
   assert row["body"] == "What's blocking PROJ-17?"
+  assert row["read_by_agent"] == 1
+
+
+def test_send_does_not_count_as_unread(db) -> None:
+  before = len(ChatTool.list_unread(db))
+  ChatTool.send(db, "alex", "What's blocking PROJ-17?")
+  assert len(ChatTool.list_unread(db)) == before

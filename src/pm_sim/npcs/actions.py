@@ -44,9 +44,13 @@ def plan_reply(
   )
 
 
-def execute_world_action(db: SimDatabase, action: str) -> None:
+PROJ22_UNBLOCKED_LABEL = "PROJ-22 (Design sign-off) unblocked"
+
+
+def execute_world_action(db: SimDatabase, action: str) -> bool:
+  """Apply a scenario world action. Returns True when the action changed state."""
   if action == "unblock_proj_22":
-    db.conn.execute(
+    cursor = db.conn.execute(
       """
       UPDATE tasks
       SET status = 'todo', blocker_reason = NULL
@@ -54,6 +58,8 @@ def execute_world_action(db: SimDatabase, action: str) -> None:
         AND blocker_reason = 'requirements meeting not held'
       """
     )
+    return cursor.rowcount > 0
+  return False
 
 
 def apply_reply_side_effects(db: SimDatabase, plan: NpcReplyPlan) -> None:

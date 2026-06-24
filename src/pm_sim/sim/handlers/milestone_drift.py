@@ -2,11 +2,21 @@
 
 from __future__ import annotations
 
+import json
 from datetime import timedelta
 
-from pm_sim.sim.clock import format_sim_time, get_sim_time, parse_sim_time
+from pm_sim.sim.clock import format_sim_time, parse_sim_time
 from pm_sim.sim.db import SimDatabase
 from pm_sim.sim.events import SimEvent
+
+
+def _record_drift_outcome(db: SimDatabase, event: SimEvent, label: str) -> None:
+  payload = dict(event.payload or {})
+  payload["world_effects"] = [label]
+  db.conn.execute(
+    "UPDATE events SET payload = ? WHERE id = ?",
+    (json.dumps(payload), event.id),
+  )
 
 
 def handle_milestone_drift(event: SimEvent, db: SimDatabase) -> list[SimEvent]:
@@ -18,6 +28,11 @@ def handle_milestone_drift(event: SimEvent, db: SimDatabase) -> list[SimEvent]:
     "SELECT status FROM tasks WHERE id = ?", (task_id,)
   ).fetchone()
   if row is None or row["status"] != "blocked":
+    _record_drift_outcome(
+      db,
+      event,
+      "no launch slip — launch date unchanged (blocker resolved)",
+    )
     return []
 
   milestone = db.conn.execute(
@@ -39,6 +54,12 @@ def handle_milestone_drift(event: SimEvent, db: SimDatabase) -> list[SimEvent]:
     "INSERT INTO sim_meta (key, value) VALUES ('launch_slipped_days', ?) "
     "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
     (str(current_slip + slip_days),),
+  )
+
+  _record_drift_outcome(
+    db,
+    event,
+    f"launch slipped +{slip_days}d — {task_id} still blocked",
   )
 
   return []

@@ -1,5 +1,6 @@
 """Tests for milestone drift."""
 
+import json
 from datetime import datetime
 from pathlib import Path
 
@@ -59,3 +60,40 @@ def test_drift_does_not_fire_if_task_unblocked(tmp_path: Path) -> None:
   ).fetchone()
   assert milestone["status"] == "pending"
   assert milestone["due_at"] == "2026-06-26T18:00:00"
+
+
+def test_drift_records_no_slip_outcome_on_event(tmp_path: Path) -> None:
+  db = SimDatabase(tmp_path / "drift.db")
+  db.init_schema()
+  db.set_meta("sim_time", "2026-06-23T18:00:00")
+  db.conn.execute(
+    """
+    INSERT INTO milestones (id, title, due_at, status, depends_on_tasks)
+    VALUES ('launch', 'Launch', '2026-06-26T18:00:00', 'pending', '[]')
+    """
+  )
+  db.conn.execute(
+    """
+    INSERT INTO tasks (id, title, status, owner_id, critical_path, depends_on)
+    VALUES ('PROJ-17', 'API', 'in_progress', 'alex', 1, '[]')
+    """
+  )
+  db.conn.commit()
+
+  event = SimEvent.create(
+    event_type="milestone.drift",
+    start_ts=datetime(2026, 6, 23, 18, 0),
+    source="test",
+    payload={"task_id": "PROJ-17", "milestone_id": "launch", "slip_days": 1},
+  )
+  enqueue(db, event)
+  process_due_events(db)
+
+  row = db.conn.execute(
+    "SELECT payload FROM events WHERE id = ?",
+    (event.id,),
+  ).fetchone()
+  payload = json.loads(row["payload"])
+  assert payload["world_effects"] == [
+    "no launch slip — launch date unchanged (blocker resolved)",
+  ]

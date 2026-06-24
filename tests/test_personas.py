@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from pm_sim.agent.conditions import SPAM_PING_TARGETS, evaluate_condition
+from pm_sim.agent.conditions import SPAM_PING_MIN_SENDS, SPAM_PING_TARGETS, evaluate_condition
 from pm_sim.agent.observation import build_observation
 from pm_sim.agent.policies import list_scenario_agents, load_scenario_agent
 from pm_sim.agent.turn import action_to_event, plan_agent_turn
@@ -60,7 +60,7 @@ def test_spam_ping_exhausted_before_tasks_list(db) -> None:
   world = world_config_from_meta(db)
   obs = build_observation(db)
 
-  for _ in SPAM_PING_TARGETS:
+  for _ in range(SPAM_PING_MIN_SENDS):
     action = plan_agent_turn(db, spec, world=world)
     assert action.name == "spam_ping_dm"
     event = action_to_event(action, db)

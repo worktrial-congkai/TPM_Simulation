@@ -80,10 +80,8 @@ def test_eval_rubric_loads() -> None:
   for key in (
     "blocker_discovery",
     "stakeholder_alignment",
-    "decision_quality",
     "project_outcome",
-    "team_health",
-    "documentation",
+    "communication_discipline",
   ):
     assert key in rubric
 

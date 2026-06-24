@@ -8,8 +8,9 @@ from pathlib import Path
 import pytest
 
 from pm_sim.sim.clock import get_sim_time, set_sim_time
-from pm_sim.sim.events import SimEvent, process_due_events
+from pm_sim.sim.events import SimEvent, insert_event, process_due_events
 from pm_sim.sim.handlers.meeting_end import handle_meeting_end
+from pm_sim.sim.handlers.meeting_start import handle_meeting_start
 from pm_sim.sim.handlers.npc_policy_scan import handle_npc_policy_scan
 from pm_sim.sim.reset import reset_scenario
 from pm_sim.sim.turns import execute_tool_turn
@@ -202,6 +203,7 @@ def test_design_signoff_gate_unblocks_proj_22(db) -> None:
     ),
   )
   db.conn.commit()
+  insert_event(db, end_event)
 
   handle_meeting_end(end_event, db)
 
@@ -210,3 +212,54 @@ def test_design_signoff_gate_unblocks_proj_22(db) -> None:
   ).fetchone()
   assert task["status"] == "todo"
   assert task["blocker_reason"] is None
+
+  held = json.loads(
+    db.conn.execute(
+      "SELECT value FROM agent_state WHERE key = 'requirements_meeting_held'"
+    ).fetchone()["value"]
+  )
+  assert held is True
+
+  stored = json.loads(
+    db.conn.execute(
+      "SELECT payload FROM events WHERE id = ?",
+      (end_event.id,),
+    ).fetchone()["payload"]
+  )
+  assert "PROJ-22 (Design sign-off) unblocked" in stored["world_effects"]
+
+
+def test_meeting_start_does_not_unblock_proj_22(db) -> None:
+  db.conn.execute(
+    """
+    INSERT INTO meetings (
+      id, title, start_at, end_at, attendee_ids, meeting_type, transcript, completed
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """,
+    (
+      "req-meeting",
+      "Requirements sync",
+      "2026-06-22T11:00:00",
+      "2026-06-22T12:00:00",
+      '["agent", "morgan"]',
+      "requirements",
+      "",
+      0,
+    ),
+  )
+  db.conn.commit()
+
+  start_event = SimEvent.create(
+    event_type="meeting.start",
+    start_ts=get_sim_time(db),
+    source="test",
+    payload={"meeting_id": "req-meeting", "meeting_type": "requirements"},
+  )
+  handle_meeting_start(start_event, db)
+
+  task = db.conn.execute(
+    "SELECT status, blocker_reason FROM tasks WHERE id = 'PROJ-22'"
+  ).fetchone()
+  assert task["status"] == "blocked"
+  assert task["blocker_reason"] == "requirements meeting not held"

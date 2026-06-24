@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 
 from pm_sim.agent.state import get_flag
-from pm_sim.agent.types import Observation
+from pm_sim.agent.types import Observation, StakeholderConflict
 from pm_sim.sim.db import SimDatabase
 from pm_sim.sim.task_timers import dependencies_met
 from pm_sim.tools.base import AGENT_ID, dm_channel
@@ -13,6 +13,7 @@ from pm_sim.tools.base import AGENT_ID, dm_channel
 OAUTH_BLOCKER_KEY = "PROJ-17_oauth_scope"
 CONFLICT_SENDERS = ("jordan", "sam")
 SPAM_PING_TARGETS = ("alex", "sam", "morgan", "jordan")
+SPAM_PING_MIN_SENDS = 15
 
 
 class PolicyError(Exception):
@@ -34,19 +35,43 @@ def _blocker_known(obs: Observation) -> bool:
   return OAUTH_BLOCKER_KEY in obs.blockers_known
 
 
-def _stakeholder_conflict_detected(db: SimDatabase) -> bool:
+def _format_role(role: str) -> str:
+  return role.replace("_", " ")
+
+
+def stakeholder_conflicts(db: SimDatabase) -> tuple[StakeholderConflict, ...]:
+  """Read emails that signal opposing stakeholder pressure (Jordan scope vs Sam date)."""
+  from pm_sim.npcs.templates import load_coworkers
+
+  scenario_id = db.get_meta("scenario_id") or "first-week-pm"
+  coworkers = load_coworkers(scenario_id)
+  conflicts: list[StakeholderConflict] = []
   for sender_id in CONFLICT_SENDERS:
     row = db.conn.execute(
       """
-      SELECT 1 FROM emails
+      SELECT subject FROM emails
       WHERE sender_id = ? AND recipient_id = ? AND read_by_agent = 1
+      ORDER BY sent_at
       LIMIT 1
       """,
       (sender_id, AGENT_ID),
     ).fetchone()
     if row is None:
-      return False
-  return True
+      return ()
+    profile = coworkers.get(sender_id, {})
+    conflicts.append(
+      StakeholderConflict(
+        sender_id=sender_id,
+        name=profile.get("name") or sender_id,
+        role=_format_role(profile.get("role") or "stakeholder"),
+        subject=row["subject"] or "",
+      )
+    )
+  return tuple(conflicts)
+
+
+def _stakeholder_conflict_detected(db: SimDatabase) -> bool:
+  return bool(stakeholder_conflicts(db))
 
 
 def _unread_dm(obs: Observation) -> bool:
@@ -65,11 +90,15 @@ def _unread_dm_from(obs: Observation, target: str) -> bool:
   return dm_channel(target) in obs.unread_channels
 
 
+def _spam_ping_total(db: SimDatabase) -> int:
+  total = get_flag(db, "spam_ping_total", 0)
+  if not isinstance(total, (int, float)):
+    return 0
+  return int(total)
+
+
 def _can_spam_ping(db: SimDatabase) -> bool:
-  sent_to = get_flag(db, "spam_ping_sent_to", [])
-  if not isinstance(sent_to, list):
-    sent_to = []
-  return any(target not in sent_to for target in SPAM_PING_TARGETS)
+  return _spam_ping_total(db) < SPAM_PING_MIN_SENDS
 
 
 def next_ready_critical_task(db: SimDatabase) -> str | None:
@@ -84,6 +113,23 @@ def next_ready_critical_task(db: SimDatabase) -> str | None:
     if dependencies_met(db, row["id"]):
       return row["id"]
   return None
+
+
+REQUIREMENTS_MEETING_BLOCKER = "requirements meeting not held"
+
+
+def requirements_blocked_task(db: SimDatabase) -> str | None:
+  row = db.conn.execute(
+    """
+    SELECT id FROM tasks
+    WHERE critical_path = 1 AND status = 'blocked'
+      AND blocker_reason = ?
+    ORDER BY id
+    LIMIT 1
+    """,
+    (REQUIREMENTS_MEETING_BLOCKER,),
+  ).fetchone()
+  return row["id"] if row else None
 
 
 def _critical_path_task_ready(db: SimDatabase) -> bool:

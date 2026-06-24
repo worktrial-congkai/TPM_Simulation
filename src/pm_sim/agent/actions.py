@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-from pm_sim.agent.conditions import SPAM_PING_TARGETS, next_ready_critical_task
+from pm_sim.agent.conditions import SPAM_PING_TARGETS, next_ready_critical_task, requirements_blocked_task
 from pm_sim.agent.state import get_flag
 from pm_sim.agent.types import AgentAction, Observation, WorldConfig
 from pm_sim.sim.clock import format_sim_time
@@ -36,13 +36,10 @@ def _meeting_slot(obs: Observation, *, hours_ahead: int = 2, duration_minutes: i
 
 
 def _next_spam_ping_target(db: SimDatabase) -> str:
-  sent_to = get_flag(db, "spam_ping_sent_to", [])
-  if not isinstance(sent_to, list):
-    sent_to = []
-  for target in SPAM_PING_TARGETS:
-    if target not in sent_to:
-      return target
-  raise ActionError("No spam ping targets remaining")
+  total = get_flag(db, "spam_ping_total", 0)
+  if not isinstance(total, (int, float)):
+    total = 0
+  return SPAM_PING_TARGETS[int(total) % len(SPAM_PING_TARGETS)]
 
 
 def resolve_action(
@@ -67,8 +64,8 @@ def resolve_action(
     )
 
   if name == "ask_blocker_owner_dm":
-    if not obs.blocker_owner:
-      raise ActionError("No blocker_owner for ask_blocker_owner_dm")
+    if not obs.blocker_owner or not obs.blocker_task_id:
+      raise ActionError("No blocker focus for ask_blocker_owner_dm")
     return AgentAction(
       type="tool",
       name=name,
@@ -76,6 +73,7 @@ def resolve_action(
       payload={
         "action": "chat_send",
         "to": obs.blocker_owner,
+        "task_id": obs.blocker_task_id,
         "body": "What's blocking the critical path task?",
         "topic": "blocker_status",
       },
@@ -115,6 +113,9 @@ def resolve_action(
     )
 
   if name == "schedule_requirements_meeting":
+    task_id = requirements_blocked_task(db)
+    if task_id is None:
+      raise ActionError("No requirements-blocked task for schedule_requirements_meeting")
     start_at, end_at = _meeting_slot(obs)
     return AgentAction(
       type="tool",
@@ -122,6 +123,7 @@ def resolve_action(
       event_type="agent.calendar_schedule",
       payload={
         "action": "calendar_schedule",
+        "task_id": task_id,
         "title": "Requirements review",
         "start_at": start_at,
         "end_at": end_at,

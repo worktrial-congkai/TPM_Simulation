@@ -64,9 +64,10 @@ def test_persona_launch_ordering(tmp_path: Path) -> None:
   meeting_dt = parse_sim_time(meeting_launch)
   inbox_dt = parse_sim_time(inbox_launch)
 
-  # Meeting and triage share the same critical path; inbox is much later.
+  # Inbox slips and scores lower on project outcome; triage/meeting stay on time.
+  assert inbox_report.metrics.launch_slipped_days > 0
+  assert triage_report.metrics.launch_slipped_days == 0
   assert meeting_dt <= inbox_dt
-  assert (inbox_dt - triage_dt).total_seconds() >= 12 * 3600
 
   triage_outcome = next(
     c for c in triage_report.rubric.components if c.component_id == "project_outcome"
@@ -74,7 +75,8 @@ def test_persona_launch_ordering(tmp_path: Path) -> None:
   inbox_outcome = next(
     c for c in inbox_report.rubric.components if c.component_id == "project_outcome"
   )
-  assert inbox_outcome.score < triage_outcome.score
+  assert inbox_outcome.score == 7.0
+  assert triage_outcome.score == 10.0
 
   meeting_rubric = meeting_report.rubric.total
   triage_rubric = triage_report.rubric.total
